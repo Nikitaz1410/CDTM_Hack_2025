@@ -2,8 +2,8 @@ import base64
 from openai import OpenAI
 from dotenv import load_dotenv
 import os
-from server.schematas import Blutbild
-from server.system_prompts import blutbild_prompt
+from server.image_engine.schematas import Blutbild
+from server.image_engine.system_prompts import blutbild_prompt
 
 # Load environment variables from .env
 load_dotenv()

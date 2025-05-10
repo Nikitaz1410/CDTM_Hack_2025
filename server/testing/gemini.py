@@ -1,6 +1,6 @@
 from google import genai
 from google.genai import types
-from server.schematas import *
+from server.image_engine.schematas import *
 
 client = genai.Client(
     vertexai=True, project="avi-cdtm-hack-team-5730", location="global"
