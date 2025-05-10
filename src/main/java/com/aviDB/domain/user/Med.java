@@ -18,7 +18,7 @@ public class Med {
     private String name;
 
     //@Column(name = "daily_intake")
-    private String dailyIntake;
+    private Integer dailyIntake;
 
     @ManyToOne(fetch = FetchType.LAZY)
     //@JoinColumn(name = "user_id", nullable = false)
