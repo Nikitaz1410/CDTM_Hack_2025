@@ -52,7 +52,7 @@ async def upload_document(
 
         schema, system_prompt, function = mapping(api_client)[document] # Use mapping(api_client) here
         analysis = image_model.run(schema, system_prompt, image_data)
-        print("TEST")
+        print(analysis)
         function(userId, analysis)
 
         # Generate unique filename
@@ -86,54 +86,6 @@ async def upload_document(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f'Failed to upload document: {str(e)}')
-
-
-@app.get('/api/documents')
-async def get_documents():
-    """Get list of uploaded documents"""
-    try:
-        documents = []
-        for filename in os.listdir(UPLOAD_FOLDER):
-            if filename.endswith(('.jpg', '.jpeg', '.png', '.pdf')):
-                filepath = os.path.join(UPLOAD_FOLDER, filename)
-                stat = os.stat(filepath)
-                documents.append({
-                    'filename': filename,
-                    'size': stat.st_size,
-                    'uploaded_at': datetime.fromtimestamp(stat.st_mtime).isoformat(),
-                    'url': f'/api/document/{filename}'
-                })
-
-        return JSONResponse(content=documents, status_code=200)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f'Failed to get documents: {str(e)}')
-
-
-@app.get('/api/document/{filename}')
-async def get_document(filename: str):
-    """Get specific document"""
-    try:
-        filepath = os.path.join(UPLOAD_FOLDER, filename)
-        if os.path.exists(filepath):
-            with open(filepath, 'rb') as f:
-                file_data = f.read()
-
-            # Return base64 encoded image data
-            mime_type = mimetypes.guess_type(filepath)[0] or 'application/octet-stream'
-            encoded = base64.b64encode(file_data).decode('utf-8')
-
-            return JSONResponse(content={
-                'filename': filename,
-                'mimeType': mime_type,
-                'data': f'data:{mime_type};base64,{encoded}'
-            }, status_code=200)
-        else:
-            raise HTTPException(status_code=404, detail='Document not found')
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f'Failed to get document: {str(e)}')
-
 
 if __name__ == '__main__':
     import uvicorn

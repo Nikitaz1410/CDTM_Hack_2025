@@ -1,5 +1,5 @@
 // src/services/healthDataService.js
-import api from '../config/api';
+import api, { pythonApi } from '../config/api';
 import { sampleHealthData, sampleDocuments } from '../data/sampleData';
 
 class HealthDataService {
@@ -8,7 +8,7 @@ class HealthDataService {
         this.checkServerConnection();
     }
 
-    // Check server connection
+    // Check server connection for Java backend
     async checkServerConnection() {
         try {
             await api.get('/health'); // Assume there's a health check endpoint
@@ -38,20 +38,20 @@ class HealthDataService {
     // Blood Test (Blutbild)
     async getBloodTests() {
         return this.withFallback(
-            () => api.get('/api/blood-tests/user/me'),
+            () => api.get('/api/blood/user/me'),
             sampleHealthData.bloodTests
         );
     }
 
     async addBloodTest(bloodTest) {
         return this.withFallback(
-            () => api.post('/api/blood-tests/user/me', bloodTest),
+            () => api.post('/api/blood/user/me', bloodTest),
             { ...bloodTest, id: Date.now() }
         );
     }
 
     // Vaccination Record (Impfpass)
-    async getVaccyinations() {
+    async getVaccinations() {
         return this.withFallback(
             () => api.get('/api/vaccinations/user/me'),
             sampleHealthData.vaccinations
@@ -68,14 +68,14 @@ class HealthDataService {
     // Medical Reports (Befunde)
     async getMedicalReports() {
         return this.withFallback(
-            () => api.get('/api/medical-reports/user/me'),
+            () => api.get('/api/reports/user/me'),
             sampleHealthData.medicalReports
         );
     }
 
     async addMedicalReport(report) {
         return this.withFallback(
-            () => api.post('/api/medical-reports/user/me', report),
+            () => api.post('/api/reports/user/me', report),
             { ...report, id: Date.now() }
         );
     }
@@ -83,19 +83,19 @@ class HealthDataService {
     // Medication (Medikation)
     async getMedications() {
         return this.withFallback(
-            () => api.get('/api/medications/user/me'),
+            () => api.get('/api/meds/user/me'),
             sampleHealthData.medications
         );
     }
 
     async addMedication(medication) {
         return this.withFallback(
-            () => api.post('/api/medications/user/me', medication),
+            () => api.post('/api/meds/user/me', medication),
             { ...medication, id: Date.now() }
         );
     }
 
-    // Document Management
+    // Document Management - uploaded documents are stored by Java backend
     async getDocuments() {
         return this.withFallback(
             () => api.get('/api/documents'),
@@ -103,17 +103,36 @@ class HealthDataService {
         );
     }
 
+    // Special handling for document upload - this goes to Python backend
     async uploadDocument(formData) {
-        return this.withFallback(
-            () => api.post('/api/upload-document', formData),
-            {
+        try {
+            // Upload to Python backend for analysis
+            const response = await pythonApi.post('/api/upload-document', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                }
+            });
+
+            // Return the response which includes analysis
+            return response.data;
+        } catch (error) {
+            console.warn('Document upload failed, using sample response:', error.message);
+            // Return sample data for demo
+            await new Promise(resolve => setTimeout(resolve, 500));
+            return {
                 success: true,
                 message: 'Document uploaded successfully (sample data)',
-                filename: formData.get('image').name,
-                size: formData.get('image').size,
-                analysis: { message: 'Sample analysis result' }
-            }
-        );
+                filename: formData.get('image')?.name || 'unknown.jpg',
+                size: formData.get('image')?.size || 0,
+                analysis: {
+                    message: 'Sample analysis result',
+                    status: 'normal',
+                    parameters: [
+                        { name: 'Sample Parameter', value: 42 }
+                    ]
+                }
+            };
+        }
     }
 
     // Server connection status

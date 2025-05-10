@@ -39,7 +39,7 @@ class ImageAnalyzer:
             ],
         )
 
-        return response.output_parsed.model_dump_json(indent=2)
+        return response.output_parsed.dict()
 
 if __name__ == "__main__":
     anal = ImageAnalyzer()

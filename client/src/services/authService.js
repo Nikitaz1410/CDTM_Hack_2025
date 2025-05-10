@@ -1,5 +1,5 @@
 // src/services/authService.js
-import api from '../config/api';
+import api, { pythonApi } from '../config/api';
 
 const authService = {
     // Login user
@@ -68,58 +68,59 @@ const authService = {
             if (!user) throw new Error('No user found');
 
             // 1. Update user profile with personal information
-            // Expected endpoint: PUT /api/users/me/complete-onboarding
-            await api.put('/api/users/me/complete-onboarding', {
-                ...onboardingData.personalInfo
-            });
+            try {
+                await api.put('/api/users/me', {
+                    ...onboardingData.personalInfo
+                });
+            } catch (error) {
+                console.warn('Failed to update personal info:', error);
+            }
 
             // 2. Save medications
-            // Expected endpoint: POST /api/meds/user/{userId}
             if (onboardingData.medications.manualData?.length > 0) {
                 for (const medication of onboardingData.medications.manualData) {
-                    await api.post(`/api/meds/user/${user.id}`, medication);
+                    try {
+                        await api.post(`/api/meds/user/${user.id}`, {
+                            name: medication.name,
+                            dailyIntake: parseInt(medication.dailyIntake) || 1
+                        });
+                    } catch (error) {
+                        console.warn('Failed to save medication:', error);
+                    }
                 }
             }
 
             // 3. Handle vaccination data
-            // Expected endpoints:
-            // - POST /api/vaccinations/user/{userId} for manual entries
-            // - POST /api/upload-document for scanned documents
             if (onboardingData.vaccinations.manualData?.length > 0) {
                 for (const vaccination of onboardingData.vaccinations.manualData) {
-                    // Transform manual vaccination data to match backend format
-                    const vaccinationData = {
-                        status: "current",
-                        impfungen: [{
-                            Impfstoffname: vaccination.name,
-                            Krankheit: [vaccination.disease],
-                            Impfdatum: vaccination.date
-                        }]
-                    };
-                    await api.post(`/api/vaccinations/user/${user.id}`, vaccinationData);
+                    try {
+                        await api.post(`/api/vaccinations/user/${user.id}`, {
+                            name: vaccination.name,
+                            disease: vaccination.disease,
+                            date: vaccination.date
+                        });
+                    } catch (error) {
+                        console.warn('Failed to save vaccination:', error);
+                    }
                 }
             }
 
             // 4. Handle medical reports data
-            // Expected endpoints:
-            // - POST /api/medical-reports/user/{userId} for manual entries
-            // - POST /api/upload-document for scanned documents
             if (onboardingData.medicalReports.manualData?.length > 0) {
                 for (const report of onboardingData.medicalReports.manualData) {
-                    const reportData = {
-                        status: "normal",
-                        date: report.date,
-                        summary: report.summary || report.title,
-                        paragraphs: [{
-                            caption: "Befund",
-                            full_text: report.summary || "Befund aus Onboarding"
-                        }]
-                    };
-                    await api.post(`/api/medical-reports/user/${user.id}`, reportData);
+                    try {
+                        await api.post(`/api/reports/user/${user.id}`, {
+                            date: report.date,
+                            summary: report.summary || report.title,
+                            text: report.summary || "Befund aus Onboarding"
+                        });
+                    } catch (error) {
+                        console.warn('Failed to save medical report:', error);
+                    }
                 }
             }
 
-            // 5. Upload scanned documents
+            // 5. Upload scanned documents to Python backend
             // Process all scanned documents from all sections
             const allDocuments = [
                 onboardingData.medications.scannedDocument,
@@ -128,24 +129,32 @@ const authService = {
             ].filter(doc => doc !== null);
 
             for (const document of allDocuments) {
-                // Convert base64 to blob for FormData
-                const response = await fetch(document.data);
-                const blob = await response.blob();
+                try {
+                    // Convert base64 to blob for FormData
+                    const response = await fetch(document.data);
+                    const blob = await response.blob();
 
-                const formData = new FormData();
-                formData.append('image', blob, document.name);
-                formData.append('timestamp', document.date);
-                formData.append('userId', user.id);
+                    const formData = new FormData();
+                    formData.append('image', blob, document.name);
+                    formData.append('userId', user.id);
 
-                // Determine document type based on section
-                let documentType = 'other';
-                if (onboardingData.medications.scannedDocument === document) documentType = 'medication';
-                if (onboardingData.vaccinations.scannedDocument === document) documentType = 'vaccination';
-                if (onboardingData.medicalReports.scannedDocument === document) documentType = 'medicalReport';
+                    // Determine document type based on section
+                    let documentType = 'other';
+                    if (onboardingData.medications.scannedDocument === document) documentType = 'medikation';
+                    if (onboardingData.vaccinations.scannedDocument === document) documentType = 'impfpass';
+                    if (onboardingData.medicalReports.scannedDocument === document) documentType = 'befund';
 
-                formData.append('document', documentType);
+                    formData.append('document', documentType);
 
-                await api.post('/api/upload-document', formData);
+                    // Upload to Python backend for analysis (which will then save to database)
+                    await pythonApi.post('/api/upload-document', formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data',
+                        }
+                    });
+                } catch (error) {
+                    console.warn('Failed to upload document:', error);
+                }
             }
 
             // Mark onboarding as complete
