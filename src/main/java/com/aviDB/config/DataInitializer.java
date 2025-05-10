@@ -30,31 +30,40 @@ public class DataInitializer implements CommandLineRunner {
         List<User> users = new ArrayList<>();
 
         // Add admin user if it doesn't exist
-        if (userRepository.findByUsername("Sebi").isEmpty()) {
+        if (userRepository.findByEmail("Sebi@avi-health.de").isEmpty()) {
             User adminUser = new User();
-            adminUser.setUsername("Sebi");
+            adminUser.setFirst("Sebi");
+            adminUser.setLast("Tester");
             adminUser.setEmail("Sebi@avi-health.de");
             adminUser.setPassword(passwordEncoder.encode("admin123"));
             adminUser.setRole("ROLE_ADMIN");
 
             users.add(adminUser);
-            System.out.println("Admin user created with username: Hoerter and password: admin123");
+            System.out.println("Admin user created with username: Sebi@avi-health.de and password: admin123");
         }
 
         // Add regular players
-        String[] playerNames = {"Sebastian", "Luca", "Nikita"};
+        String[] playerEmails = {"Daniel@avi-health.de", "Luca@avi-health.de", "Nikita@avi-health.de"};
         String defaultPassword = "password123";
 
-        for (String name : playerNames) {
-            if (userRepository.findByUsername(name).isEmpty()) {
+        for (String email : playerEmails) {
+            String normalizedEmail = email.toLowerCase();
+
+            if (userRepository.findByEmail(normalizedEmail).isEmpty()) {
                 User player = new User();
-                player.setUsername(name);
-                player.setEmail(name.toLowerCase() + "@avi-health.de");
+
+                // Extract first name from email
+                String firstName = normalizedEmail.split("@")[0];
+                firstName = firstName.substring(0, 1).toUpperCase() + firstName.substring(1); // Capitalize
+
+                player.setFirst(firstName);
+                player.setLast("Tester");
+                player.setEmail(normalizedEmail);
                 player.setPassword(passwordEncoder.encode(defaultPassword));
                 player.setRole("ROLE_USER");
 
                 users.add(player);
-                System.out.println("Player created with username: " + name + " and password: " + defaultPassword);
+                System.out.println("Player created with email: " + normalizedEmail + " and password: " + defaultPassword);
             }
         }
 
