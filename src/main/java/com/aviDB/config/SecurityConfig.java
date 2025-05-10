@@ -80,7 +80,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/friends/**").authenticated()
 
                         // Default policy: require authentication
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
