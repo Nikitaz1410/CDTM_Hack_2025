@@ -13,7 +13,8 @@ import java.util.logging.Logger;
 @SpringBootApplication(scanBasePackages = "com.aviDB")
 @EnableJpaRepositories(basePackages = "com.aviDB.repository")
 @EntityScan(basePackages = "com.aviDB.domain")
-public class AVIApplication {
+public class
+AVIApplication {
 
     private static final Logger logger = Logger.getLogger(AVIApplication.class.getName());
     private static boolean artDisplayed = false;

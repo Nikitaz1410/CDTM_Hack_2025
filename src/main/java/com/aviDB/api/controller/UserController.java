@@ -76,13 +76,6 @@ public class UserController {
         return ResponseEntity.ok(userDto);
     }
 
-    @PutMapping(value = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<UserDto> updateCurrentUserAvatar(@RequestParam("avatar") MultipartFile avatarFile) throws IOException {
-        User currentUser = userService.getCurrentUser();
-        User updatedUser = userService.updateAvatar(currentUser.getId(), avatarFile.getBytes());
-        UserDto userDto = convertToDto(updatedUser);
-        return ResponseEntity.ok(userDto);
-    }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/role")
