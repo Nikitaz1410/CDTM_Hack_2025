@@ -1,55 +1,52 @@
 // src/components/onboarding/OnboardingFlow.jsx
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   ChevronRight,
   ChevronLeft,
   Heart,
-  Smartphone,
   User,
-  Calendar,
-  Check,
-  X,
   Pill,
-  Activity,
-  AlertTriangle,
+  Syringe,
   FileText,
-  Apple,
-  Watch
+  Upload,
+  Check,
+  Trash2,
+  Plus,
+  Edit,
+  Camera,
+  ArrowLeft
 } from 'lucide-react';
 
 const OnboardingFlow = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
     personalInfo: {
-      firstName: '',
-      lastName: '',
-      birthDate: '',
-      gender: '',
-      bloodType: ''
+      first: '',
+      last: '',
+      weight: '',
+      height: ''
     },
-    medications: [],
-    medicalHistory: {
-      painLocation: null,
-      painDuration: '',
-      painTriggers: '',
-      previousTreatments: '',
-      accompaniedComplaints: [],
-      wantsSickLeave: null
+    medications: {
+      manualData: [],
+      scannedDocument: null
     },
-    deviceIntegration: {
-      appleHealth: false,
-      appleWatch: false,
-      googleFit: false
+    vaccinations: {
+      manualData: [],
+      scannedDocument: null
+    },
+    medicalReports: {
+      manualData: [],
+      scannedDocument: null
     }
   });
 
-  const totalSteps = 5;
+  const totalSteps = 6; // Welcome, Personal Info, Medications, Vaccinations, Medical Reports, Complete
 
   const nextStep = () => {
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Call the onComplete function with formData
+      // Complete onboarding
       onComplete(formData);
     }
   };
@@ -66,27 +63,6 @@ const OnboardingFlow = ({ onComplete }) => {
       [section]: {
         ...prev[section],
         [field]: value
-      }
-    }));
-  };
-
-  const toggleMedication = (medication) => {
-    setFormData(prev => ({
-      ...prev,
-      medications: prev.medications.includes(medication)
-          ? prev.medications.filter(m => m !== medication)
-          : [...prev.medications, medication]
-    }));
-  };
-
-  const toggleComplaint = (complaint) => {
-    setFormData(prev => ({
-      ...prev,
-      medicalHistory: {
-        ...prev.medicalHistory,
-        accompaniedComplaints: prev.medicalHistory.accompaniedComplaints.includes(complaint)
-            ? prev.medicalHistory.accompaniedComplaints.filter(c => c !== complaint)
-            : [...prev.medicalHistory.accompaniedComplaints, complaint]
       }
     }));
   };
@@ -111,15 +87,13 @@ const OnboardingFlow = ({ onComplete }) => {
       case 1:
         return <PersonalInfoStep formData={formData} updateFormData={updateFormData} />;
       case 2:
-        return <MedicationsStep formData={formData} toggleMedication={toggleMedication} />;
+        return <MedicationsStep formData={formData} setFormData={setFormData} />;
       case 3:
-        return <HealthHistoryStep
-            formData={formData}
-            updateFormData={updateFormData}
-            toggleComplaint={toggleComplaint}
-        />;
+        return <VaccinationsStep formData={formData} setFormData={setFormData} />;
       case 4:
-        return <DeviceIntegrationStep formData={formData} updateFormData={updateFormData} />;
+        return <MedicalReportsStep formData={formData} setFormData={setFormData} />;
+      case 5:
+        return <CompleteStep formData={formData} />;
       default:
         return null;
     }
@@ -143,7 +117,7 @@ const OnboardingFlow = ({ onComplete }) => {
                 currentStep === totalSteps - 1 ? 'px-8' : ''
             }`}
         >
-          {currentStep === totalSteps - 1 ? 'App starten' : 'Weiter'}
+          {currentStep === totalSteps - 1 ? 'Onboarding abschließen' : 'Weiter'}
           {currentStep !== totalSteps - 1 && <ChevronRight size={20} className="ml-1" />}
         </button>
       </div>
@@ -153,7 +127,6 @@ const OnboardingFlow = ({ onComplete }) => {
       <div className="max-w-md mx-auto h-screen bg-white overflow-y-auto">
         <div className="p-6">
           {currentStep > 0 && renderProgressBar()}
-
           {renderStepContent()}
           {renderButtons()}
         </div>
@@ -161,7 +134,7 @@ const OnboardingFlow = ({ onComplete }) => {
   );
 };
 
-// Step Components (rest of the components remain the same)
+// Step Components
 const WelcomeStep = () => (
     <div className="text-center pt-16">
       <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-teal-100 flex items-center justify-center">
@@ -169,8 +142,8 @@ const WelcomeStep = () => (
       </div>
       <h1 className="text-2xl font-bold mb-4">Willkommen bei Health Tracker</h1>
       <p className="text-gray-600 mb-8">
-        In wenigen Schritten richten wir Ihr persönliches Gesundheitsprofil ein,
-        damit Ihr Arzt Sie bestmöglich betreuen kann.
+        Lass uns Dein persönliches Gesundheitsprofil einrichten. Dies hilft uns, Dir
+        die bestmögliche Betreuung zu bieten.
       </p>
       <div className="space-y-4">
         <div className="flex items-center text-left">
@@ -179,15 +152,15 @@ const WelcomeStep = () => (
         </div>
         <div className="flex items-center text-left">
           <Pill className="text-teal-500 mr-3" size={20} />
-          <span>Aktuelle Medikamente</span>
+          <span>Medikamente</span>
+        </div>
+        <div className="flex items-center text-left">
+          <Syringe className="text-teal-500 mr-3" size={20} />
+          <span>Impfpass</span>
         </div>
         <div className="flex items-center text-left">
           <FileText className="text-teal-500 mr-3" size={20} />
-          <span>Gesundheitsverlauf</span>
-        </div>
-        <div className="flex items-center text-left">
-          <Activity className="text-teal-500 mr-3" size={20} />
-          <span>Geräte-Integration</span>
+          <span>Befunde</span>
         </div>
       </div>
     </div>
@@ -201,8 +174,8 @@ const PersonalInfoStep = ({ formData, updateFormData }) => (
           <label className="block text-sm text-gray-600 mb-1">Vorname</label>
           <input
               type="text"
-              value={formData.personalInfo.firstName}
-              onChange={(e) => updateFormData('personalInfo', 'firstName', e.target.value)}
+              value={formData.personalInfo.first}
+              onChange={(e) => updateFormData('personalInfo', 'first', e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg"
               placeholder="Max"
           />
@@ -212,278 +185,599 @@ const PersonalInfoStep = ({ formData, updateFormData }) => (
           <label className="block text-sm text-gray-600 mb-1">Nachname</label>
           <input
               type="text"
-              value={formData.personalInfo.lastName}
-              onChange={(e) => updateFormData('personalInfo', 'lastName', e.target.value)}
+              value={formData.personalInfo.last}
+              onChange={(e) => updateFormData('personalInfo', 'last', e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg"
               placeholder="Mustermann"
           />
         </div>
 
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Geburtsdatum</label>
+          <label className="block text-sm text-gray-600 mb-1">Gewicht (kg)</label>
           <input
-              type="date"
-              value={formData.personalInfo.birthDate}
-              onChange={(e) => updateFormData('personalInfo', 'birthDate', e.target.value)}
+              type="number"
+              value={formData.personalInfo.weight}
+              onChange={(e) => updateFormData('personalInfo', 'weight', e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg"
+              placeholder="75"
           />
         </div>
 
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Geschlecht</label>
-          <select
-              value={formData.personalInfo.gender}
-              onChange={(e) => updateFormData('personalInfo', 'gender', e.target.value)}
+          <label className="block text-sm text-gray-600 mb-1">Größe (cm)</label>
+          <input
+              type="number"
+              value={formData.personalInfo.height}
+              onChange={(e) => updateFormData('personalInfo', 'height', e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg"
-          >
-            <option value="">Bitte wählen</option>
-            <option value="male">Männlich</option>
-            <option value="female">Weiblich</option>
-            <option value="diverse">Divers</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm text-gray-600 mb-1">Blutgruppe (optional)</label>
-          <select
-              value={formData.personalInfo.bloodType}
-              onChange={(e) => updateFormData('personalInfo', 'bloodType', e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg"
-          >
-            <option value="">Bitte wählen</option>
-            <option value="A+">A+</option>
-            <option value="A-">A-</option>
-            <option value="B+">B+</option>
-            <option value="B-">B-</option>
-            <option value="AB+">AB+</option>
-            <option value="AB-">AB-</option>
-            <option value="O+">O+</option>
-            <option value="O-">O-</option>
-          </select>
+              placeholder="180"
+          />
         </div>
       </div>
     </div>
 );
 
-const MedicationsStep = ({ formData, toggleMedication }) => {
-  const commonMedications = [
-    'Ibuprofen',
-    'Paracetamol',
-    'Aspirin',
-    'Blutdrucksenker',
-    'Insulin',
-    'Blutverdünner',
-    'Antidepressiva',
-    'Cholesterinsenker',
-    'Antibiotika',
-    'Andere'
-  ];
+// Medical Step Template for Medications, Vaccinations, and Medical Reports
+const MedicalStepTemplate = ({
+                               title,
+                               icon,
+                               itemType,
+                               formData,
+                               setFormData,
+                               ManualFormComponent,
+                               documentType
+                             }) => {
+  const [inputMode, setInputMode] = useState('choice'); // 'choice', 'manual', 'scan'
+  const [documentPreview, setDocumentPreview] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const document = {
+        name: file.name,
+        size: file.size,
+        data: reader.result,
+        date: new Date().toISOString().split('T')[0]
+      };
+
+      setFormData(prev => ({
+        ...prev,
+        [itemType]: {
+          ...prev[itemType],
+          scannedDocument: document
+        }
+      }));
+      setDocumentPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+    setInputMode('scan');
+  };
+
+  const removeDocument = () => {
+    setFormData(prev => ({
+      ...prev,
+      [itemType]: {
+        ...prev[itemType],
+        scannedDocument: null
+      }
+    }));
+    setDocumentPreview(null);
+    setInputMode('choice');
+  };
+
+  if (inputMode === 'choice') {
+    return (
+        <div>
+          <div className="flex items-center mb-4">
+            <div className="w-12 h-12 rounded-lg bg-teal-100 flex items-center justify-center text-teal-600 mr-3">
+              {icon}
+            </div>
+            <h2 className="text-xl font-bold">{title}</h2>
+          </div>
+
+          <p className="text-gray-600 mb-6">
+            Wie möchtest Du Deine {title.toLowerCase()} hinzufügen?
+          </p>
+
+          <div className="space-y-4">
+            <button
+                onClick={() => setInputMode('manual')}
+                className="w-full flex items-center justify-center p-4 border-2 border-gray-200 rounded-lg hover:border-teal-500 transition-colors"
+            >
+              <Edit size={24} className="mr-3 text-teal-600" />
+              <span className="font-medium">Manuell eingeben</span>
+            </button>
+
+            <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full flex items-center justify-center p-4 border-2 border-gray-200 rounded-lg hover:border-teal-500 transition-colors"
+            >
+              <Camera size={24} className="mr-3 text-teal-600" />
+              <span className="font-medium">Dokument scannen</span>
+            </button>
+
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,.pdf"
+                onChange={handleFileUpload}
+                className="hidden"
+            />
+          </div>
+
+          {formData[itemType].manualData.length > 0 || formData[itemType].scannedDocument && (
+              <div className="mt-6">
+                <h3 className="font-medium mb-2 text-gray-700">Bereits hinzugefügt:</h3>
+                {formData[itemType].manualData.length > 0 && (
+                    <div className="text-sm text-teal-600">✓ {formData[itemType].manualData.length} manuell eingetragen</div>
+                )}
+                {formData[itemType].scannedDocument && (
+                    <div className="text-sm text-teal-600">✓ 1 Dokument gescannt</div>
+                )}
+              </div>
+          )}
+        </div>
+    );
+  }
+
+  if (inputMode === 'manual') {
+    return (
+        <div>
+          <button
+              onClick={() => setInputMode('choice')}
+              className="flex items-center text-teal-600 mb-4"
+          >
+            <ArrowLeft size={20} className="mr-2" />
+            Zurück
+          </button>
+
+          <div className="flex items-center mb-4">
+            <div className="w-12 h-12 rounded-lg bg-teal-100 flex items-center justify-center text-teal-600 mr-3">
+              {icon}
+            </div>
+            <h2 className="text-xl font-bold">{title} - Manuell</h2>
+          </div>
+
+          <ManualFormComponent
+              formData={formData}
+              setFormData={setFormData}
+              itemType={itemType}
+          />
+
+          <div className="mt-6">
+            <button
+                onClick={() => setInputMode('choice')}
+                className="w-full bg-teal-500 text-white py-3 rounded-lg"
+            >
+              Fertig
+            </button>
+          </div>
+        </div>
+    );
+  }
+
+  if (inputMode === 'scan') {
+    return (
+        <div>
+          <button
+              onClick={() => setInputMode('choice')}
+              className="flex items-center text-teal-600 mb-4"
+          >
+            <ArrowLeft size={20} className="mr-2" />
+            Zurück
+          </button>
+
+          <div className="flex items-center mb-4">
+            <div className="w-12 h-12 rounded-lg bg-teal-100 flex items-center justify-center text-teal-600 mr-3">
+              {icon}
+            </div>
+            <h2 className="text-xl font-bold">{title} - Dokument</h2>
+          </div>
+
+          {documentPreview ? (
+              <div>
+                <div className="relative mb-4">
+                  <img
+                      src={documentPreview}
+                      alt="Scanned document"
+                      className="w-full h-64 object-contain rounded-lg border border-gray-200"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg mb-4">
+                  <div className="flex items-center">
+                    <FileText size={16} className="text-gray-400 mr-2" />
+                    <span className="text-sm">{formData[itemType].scannedDocument?.name}</span>
+                  </div>
+                  <button
+                      onClick={removeDocument}
+                      className="p-2 text-red-500 hover:bg-red-50 rounded"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+
+                <button
+                    onClick={() => setInputMode('choice')}
+                    className="w-full bg-teal-500 text-white py-3 rounded-lg"
+                >
+                  Dokument verwenden
+                </button>
+              </div>
+          ) : (
+              <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full flex flex-col items-center justify-center h-64 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 hover:border-teal-500 transition-colors"
+              >
+                <Upload size={48} className="text-teal-500 mb-4" />
+                <span className="text-center text-gray-600">Dokument hochladen</span>
+                <span className="text-sm text-gray-500 mt-1">PDF, JPG, PNG bis 10MB</span>
+              </button>
+          )}
+
+          <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,.pdf"
+              onChange={handleFileUpload}
+              className="hidden"
+          />
+        </div>
+    );
+  }
+};
+
+// Manual Form Components (now properly as React components)
+const MedicationsManualForm = ({ formData, setFormData, itemType }) => {
+  const [currentMedication, setCurrentMedication] = useState({
+    name: '',
+    dailyIntake: ''
+  });
+
+  const addMedication = () => {
+    if (currentMedication.name && currentMedication.dailyIntake) {
+      setFormData(prev => ({
+        ...prev,
+        [itemType]: {
+          ...prev[itemType],
+          manualData: [...prev[itemType].manualData, { ...currentMedication }]
+        }
+      }));
+      setCurrentMedication({ name: '', dailyIntake: '' });
+    }
+  };
+
+  const removeMedication = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      [itemType]: {
+        ...prev[itemType],
+        manualData: prev[itemType].manualData.filter((_, i) => i !== index)
+      }
+    }));
+  };
 
   return (
       <div>
-        <h2 className="text-xl font-bold mb-4">Aktuelle Medikamente</h2>
-        <p className="text-gray-600 mb-6">
-          Welche Medikamente nehmen Sie derzeit regelmäßig ein?
-        </p>
-
-        <div className="space-y-3">
-          {commonMedications.map((medication) => (
-              <label key={medication} className="flex items-center">
-                <input
-                    type="checkbox"
-                    checked={formData.medications.includes(medication)}
-                    onChange={() => toggleMedication(medication)}
-                    className="mr-3 w-5 h-5 text-teal-600"
-                />
-                <span>{medication}</span>
-              </label>
-          ))}
+        <div className="bg-gray-50 p-4 rounded-lg mb-4">
+          <div className="space-y-3">
+            <input
+                type="text"
+                value={currentMedication.name}
+                onChange={(e) => setCurrentMedication(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Medikamentenname"
+                className="w-full p-3 border border-gray-300 rounded-lg"
+            />
+            <input
+                type="text"
+                value={currentMedication.dailyIntake}
+                onChange={(e) => setCurrentMedication(prev => ({ ...prev, dailyIntake: e.target.value }))}
+                placeholder="Dosierung (z.B. 1-0-1)"
+                className="w-full p-3 border border-gray-300 rounded-lg"
+            />
+            <button
+                onClick={addMedication}
+                className="flex items-center justify-center w-full py-2 bg-teal-500 text-white rounded-lg"
+            >
+              <Plus size={16} className="mr-2" />
+              Medikament hinzufügen
+            </button>
+          </div>
         </div>
 
-        {formData.medications.includes('Andere') && (
-            <div className="mt-4">
-              <input
-                  type="text"
-                  className="w-full p-3 border border-gray-300 rounded-lg"
-                  placeholder="Bitte angeben..."
-              />
+        {formData[itemType].manualData.length > 0 && (
+            <div className="space-y-2">
+              {formData[itemType].manualData.map((med, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
+                    <div>
+                      <div className="font-medium">{med.name}</div>
+                      <div className="text-sm text-gray-500">{med.dailyIntake}</div>
+                    </div>
+                    <button
+                        onClick={() => removeMedication(index)}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+              ))}
             </div>
         )}
       </div>
   );
 };
 
-const HealthHistoryStep = ({ formData, updateFormData, toggleComplaint }) => {
-  const painLocations = [
-    { id: 'head', label: 'Stirn, Schläfen und/oder Nacken' },
-    { id: 'back', label: 'Hinterkopf' },
-    { id: 'face', label: 'Im Gesicht' },
-    { id: 'eye', label: 'Um das Auge' },
-    { id: 'side', label: 'Eine Seite des Kopfes' }
-  ];
+const VaccinationsManualForm = ({ formData, setFormData, itemType }) => {
+  const [currentVaccination, setCurrentVaccination] = useState({
+    name: '',
+    date: '',
+    disease: ''
+  });
 
-  const complaints = [
-    'Sehstörungen',
-    'Nackensteife',
-    'Schwindel',
-    'Kribbeln- oder Taubheitsgefühl',
-    'Krämpfe',
-    'Übelkeit',
-    'Erbrechen'
-  ];
+  const addVaccination = () => {
+    if (currentVaccination.name && currentVaccination.date) {
+      setFormData(prev => ({
+        ...prev,
+        [itemType]: {
+          ...prev[itemType],
+          manualData: [...prev[itemType].manualData, { ...currentVaccination }]
+        }
+      }));
+      setCurrentVaccination({ name: '', date: '', disease: '' });
+    }
+  };
+
+  const removeVaccination = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      [itemType]: {
+        ...prev[itemType],
+        manualData: prev[itemType].manualData.filter((_, i) => i !== index)
+      }
+    }));
+  };
 
   return (
       <div>
-        <h2 className="text-xl font-bold mb-4">Anamnese</h2>
-        <div className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium mb-2">Schmerzlokalisation</label>
-            <div className="space-y-2">
-              {painLocations.map((location) => (
-                  <label key={location.id} className="flex items-center">
-                    <input
-                        type="radio"
-                        checked={formData.medicalHistory.painLocation === location.id}
-                        onChange={() => updateFormData('medicalHistory', 'painLocation', location.id)}
-                        className="mr-3 w-4 h-4 text-teal-600"
-                    />
-                    <span>{location.label}</span>
-                  </label>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Dauer</label>
-            <div className="flex space-x-4">
-              <label className="flex items-center">
-                <input
-                    type="radio"
-                    checked={formData.medicalHistory.painDuration === 'weekly'}
-                    onChange={() => updateFormData('medicalHistory', 'painDuration', 'weekly')}
-                    className="mr-2 w-4 h-4 text-teal-600"
-                />
-                <span>Mehrmals die Woche</span>
-              </label>
-              <label className="flex items-center">
-                <input
-                    type="radio"
-                    checked={formData.medicalHistory.painDuration === 'weeksAgo'}
-                    onChange={() => updateFormData('medicalHistory', 'painDuration', 'weeksAgo')}
-                    className="mr-2 w-4 h-4 text-teal-600"
-                />
-                <span>Seit einigen Wochen</span>
-              </label>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Weitere Beschwerden</label>
-            <div className="space-y-2">
-              {complaints.map((complaint) => (
-                  <label key={complaint} className="flex items-center">
-                    <input
-                        type="checkbox"
-                        checked={formData.medicalHistory.accompaniedComplaints.includes(complaint)}
-                        onChange={() => toggleComplaint(complaint)}
-                        className="mr-3 w-5 h-5 text-teal-600"
-                    />
-                    <span>{complaint}</span>
-                  </label>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Krankschreibungswunsch</label>
-            <div className="flex space-x-8">
-              <label className="flex items-center">
-                <input
-                    type="radio"
-                    checked={formData.medicalHistory.wantsSickLeave === true}
-                    onChange={() => updateFormData('medicalHistory', 'wantsSickLeave', true)}
-                    className="mr-2 w-4 h-4 text-teal-600"
-                />
-                <span>Ja</span>
-              </label>
-              <label className="flex items-center">
-                <input
-                    type="radio"
-                    checked={formData.medicalHistory.wantsSickLeave === false}
-                    onChange={() => updateFormData('medicalHistory', 'wantsSickLeave', false)}
-                    className="mr-2 w-4 h-4 text-teal-600"
-                />
-                <span>Nein</span>
-              </label>
-            </div>
+        <div className="bg-gray-50 p-4 rounded-lg mb-4">
+          <div className="space-y-3">
+            <input
+                type="text"
+                value={currentVaccination.name}
+                onChange={(e) => setCurrentVaccination(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Impfstoffname"
+                className="w-full p-3 border border-gray-300 rounded-lg"
+            />
+            <input
+                type="text"
+                value={currentVaccination.disease}
+                onChange={(e) => setCurrentVaccination(prev => ({ ...prev, disease: e.target.value }))}
+                placeholder="Schutz gegen (z.B. Tetanus)"
+                className="w-full p-3 border border-gray-300 rounded-lg"
+            />
+            <input
+                type="date"
+                value={currentVaccination.date}
+                onChange={(e) => setCurrentVaccination(prev => ({ ...prev, date: e.target.value }))}
+                className="w-full p-3 border border-gray-300 rounded-lg"
+            />
+            <button
+                onClick={addVaccination}
+                className="flex items-center justify-center w-full py-2 bg-teal-500 text-white rounded-lg"
+            >
+              <Plus size={16} className="mr-2" />
+              Impfung hinzufügen
+            </button>
           </div>
         </div>
+
+        {formData[itemType].manualData.length > 0 && (
+            <div className="space-y-2">
+              {formData[itemType].manualData.map((vaccination, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
+                    <div>
+                      <div className="font-medium">{vaccination.name}</div>
+                      <div className="text-sm text-gray-500">
+                        {vaccination.disease} • {new Date(vaccination.date).toLocaleDateString('de-DE')}
+                      </div>
+                    </div>
+                    <button
+                        onClick={() => removeVaccination(index)}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+              ))}
+            </div>
+        )}
       </div>
   );
 };
 
-const DeviceIntegrationStep = ({ formData, updateFormData }) => {
-  const devices = [
-    {
-      id: 'appleHealth',
-      name: 'Apple Health',
-      icon: <Apple size={24} />,
-      description: 'Synchronisieren Sie Ihre Gesundheitsdaten'
-    },
-    {
-      id: 'appleWatch',
-      name: 'Apple Watch',
-      icon: <Watch size={24} />,
-      description: 'Aktivitäts- und Herzfrequenzdaten importieren'
-    },
-    {
-      id: 'googleFit',
-      name: 'Google Fit',
-      icon: <Activity size={24} />,
-      description: 'Fitness- und Aktivitätsdaten synchronisieren'
+const MedicalReportsManualForm = ({ formData, setFormData, itemType }) => {
+  const [currentReport, setCurrentReport] = useState({
+    title: '',
+    date: '',
+    summary: ''
+  });
+
+  const addReport = () => {
+    if (currentReport.title && currentReport.date) {
+      setFormData(prev => ({
+        ...prev,
+        [itemType]: {
+          ...prev[itemType],
+          manualData: [...prev[itemType].manualData, { ...currentReport }]
+        }
+      }));
+      setCurrentReport({ title: '', date: '', summary: '' });
     }
-  ];
+  };
+
+  const removeReport = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      [itemType]: {
+        ...prev[itemType],
+        manualData: prev[itemType].manualData.filter((_, i) => i !== index)
+      }
+    }));
+  };
 
   return (
       <div>
-        <h2 className="text-xl font-bold mb-4">Geräte-Integration</h2>
-        <p className="text-gray-600 mb-6">
-          Verbinden Sie Ihre Gesundheitsgeräte für automatische Datenerfassung
+        <div className="bg-gray-50 p-4 rounded-lg mb-4">
+          <div className="space-y-3">
+            <input
+                type="text"
+                value={currentReport.title}
+                onChange={(e) => setCurrentReport(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Titel des Befunds"
+                className="w-full p-3 border border-gray-300 rounded-lg"
+            />
+            <input
+                type="date"
+                value={currentReport.date}
+                onChange={(e) => setCurrentReport(prev => ({ ...prev, date: e.target.value }))}
+                className="w-full p-3 border border-gray-300 rounded-lg"
+            />
+            <textarea
+                value={currentReport.summary}
+                onChange={(e) => setCurrentReport(prev => ({ ...prev, summary: e.target.value }))}
+                placeholder="Zusammenfassung (optional)"
+                className="w-full p-3 border border-gray-300 rounded-lg"
+                rows={3}
+            />
+            <button
+                onClick={addReport}
+                className="flex items-center justify-center w-full py-2 bg-teal-500 text-white rounded-lg"
+            >
+              <Plus size={16} className="mr-2" />
+              Befund hinzufügen
+            </button>
+          </div>
+        </div>
+
+        {formData[itemType].manualData.length > 0 && (
+            <div className="space-y-2">
+              {formData[itemType].manualData.map((report, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
+                    <div>
+                      <div className="font-medium">{report.title}</div>
+                      <div className="text-sm text-gray-500">
+                        {new Date(report.date).toLocaleDateString('de-DE')}
+                      </div>
+                      {report.summary && (
+                          <div className="text-sm text-gray-600 mt-1 line-clamp-2">{report.summary}</div>
+                      )}
+                    </div>
+                    <button
+                        onClick={() => removeReport(index)}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+              ))}
+            </div>
+        )}
+      </div>
+  );
+};
+
+// Main Steps
+const MedicationsStep = ({ formData, setFormData }) => {
+  return (
+      <MedicalStepTemplate
+          title="Medikamente"
+          icon={<Pill size={24} />}
+          itemType="medications"
+          formData={formData}
+          setFormData={setFormData}
+          ManualFormComponent={MedicationsManualForm}
+          documentType="medication"
+      />
+  );
+};
+
+const VaccinationsStep = ({ formData, setFormData }) => {
+  return (
+      <MedicalStepTemplate
+          title="Impfpass"
+          icon={<Syringe size={24} />}
+          itemType="vaccinations"
+          formData={formData}
+          setFormData={setFormData}
+          ManualFormComponent={VaccinationsManualForm}
+          documentType="vaccination"
+      />
+  );
+};
+
+const MedicalReportsStep = ({ formData, setFormData }) => {
+  return (
+      <MedicalStepTemplate
+          title="Befunde"
+          icon={<FileText size={24} />}
+          itemType="medicalReports"
+          formData={formData}
+          setFormData={setFormData}
+          ManualFormComponent={MedicalReportsManualForm}
+          documentType="medicalReport"
+      />
+  );
+};
+
+// Complete Step
+const CompleteStep = ({ formData }) => {
+  const getItemCount = (item) => {
+    return (item.manualData?.length || 0) + (item.scannedDocument ? 1 : 0);
+  };
+
+  return (
+      <div className="text-center pt-16">
+        <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center">
+          <Check className="text-green-600" size={40} />
+        </div>
+        <h1 className="text-2xl font-bold mb-4">Onboarding abgeschlossen!</h1>
+        <p className="text-gray-600 mb-8">
+          Deine Gesundheitsdaten wurden erfolgreich eingerichtet.
         </p>
 
-        <div className="space-y-4">
-          {devices.map((device) => (
-              <div key={device.id} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-600 mr-3">
-                      {device.icon}
-                    </div>
-                    <div>
-                      <h3 className="font-medium">{device.name}</h3>
-                      <p className="text-sm text-gray-500">{device.description}</p>
-                    </div>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                        type="checkbox"
-                        checked={formData.deviceIntegration[device.id]}
-                        onChange={(e) => updateFormData('deviceIntegration', device.id, e.target.checked)}
-                        className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
-                  </label>
-                </div>
-              </div>
-          ))}
+        <div className="space-y-3 mb-8">
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center">
+              <Pill className="text-teal-500 mr-3" size={20} />
+              <span>Medikamente</span>
+            </div>
+            <span className="text-gray-600">{getItemCount(formData.medications)} hinzugefügt</span>
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center">
+              <Syringe className="text-teal-500 mr-3" size={20} />
+              <span>Impfungen</span>
+            </div>
+            <span className="text-gray-600">{getItemCount(formData.vaccinations)} hinzugefügt</span>
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center">
+              <FileText className="text-teal-500 mr-3" size={20} />
+              <span>Befunde</span>
+            </div>
+            <span className="text-gray-600">{getItemCount(formData.medicalReports)} hinzugefügt</span>
+          </div>
         </div>
 
-        <div className="mt-8 p-4 bg-teal-50 rounded-lg">
-          <p className="text-sm text-teal-700">
-            <AlertTriangle className="inline mr-2" size={16} />
-            Diese Integrationen sind derzeit in der Testphase. Sie können diese später in den Einstellungen anpassen.
-          </p>
-        </div>
+        <p className="text-sm text-gray-500">
+          Du kannst jederzeit weitere Informationen in deinem Profil hinzufügen.
+        </p>
       </div>
   );
 };

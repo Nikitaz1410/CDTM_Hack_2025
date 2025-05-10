@@ -14,6 +14,7 @@ const App = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isNewRegistration, setIsNewRegistration] = useState(false);
 
   // Check authentication status on app load
   useEffect(() => {
@@ -23,29 +24,26 @@ const App = () => {
   const checkAuthStatus = () => {
     const authenticated = authService.isAuthenticated();
     const currentUser = authService.getCurrentUser();
-    const completedOnboarding = localStorage.getItem('hasCompletedOnboarding');
 
     setIsAuthenticated(authenticated);
     setUser(currentUser);
-
-    // If authenticated but hasn't completed onboarding, show onboarding
-    if (authenticated && !completedOnboarding) {
-      setShowOnboarding(true);
-    }
-
     setIsLoading(false);
   };
 
-  // Handle login
+  // Handle login (existing users don't need onboarding)
   const handleLogin = (userData) => {
     setIsAuthenticated(true);
     setUser(userData);
+    setIsNewRegistration(false);
+    setShowOnboarding(false);
+  };
 
-    // Check if user needs onboarding
-    const completedOnboarding = localStorage.getItem('hasCompletedOnboarding');
-    if (!completedOnboarding) {
-      setShowOnboarding(true);
-    }
+  // Handle registration (new users need onboarding)
+  const handleRegistration = (userData) => {
+    setIsAuthenticated(true);
+    setUser(userData);
+    setIsNewRegistration(true);
+    setShowOnboarding(true);
   };
 
   // Handle logout
@@ -54,20 +52,26 @@ const App = () => {
     setIsAuthenticated(false);
     setUser(null);
     setShowOnboarding(false);
+    setIsNewRegistration(false);
   };
 
   // Complete onboarding
   const completeOnboarding = async (onboardingData) => {
     try {
       // Save onboarding data to backend
+      // Expected endpoints:
+      // - PUT /api/users/me/complete-onboarding
+      // - POST /api/meds/user/{userId}
+      // - POST /api/blood/user/{userId}
       await authService.saveOnboardingData(onboardingData);
-      localStorage.setItem('hasCompletedOnboarding', 'true');
+
       setShowOnboarding(false);
+      setIsNewRegistration(false);
     } catch (error) {
       console.error('Failed to save onboarding data:', error);
-      // For now, still complete onboarding even if save fails
-      localStorage.setItem('hasCompletedOnboarding', 'true');
+      // Still complete onboarding to avoid blocking user
       setShowOnboarding(false);
+      setIsNewRegistration(false);
     }
   };
 
@@ -82,11 +86,14 @@ const App = () => {
 
   // Show login page if not authenticated
   if (!isAuthenticated) {
-    return <LoginPage onLogin={handleLogin} />;
+    return <LoginPage
+        onLogin={handleLogin}
+        onRegistration={handleRegistration}
+    />;
   }
 
-  // Show onboarding if user hasn't completed it
-  if (showOnboarding) {
+  // Show onboarding only for new registrations
+  if (isNewRegistration && showOnboarding) {
     return <OnboardingFlow onComplete={completeOnboarding} />;
   }
 
