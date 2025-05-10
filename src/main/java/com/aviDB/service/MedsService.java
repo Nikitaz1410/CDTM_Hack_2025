@@ -34,7 +34,7 @@ public class MedsService {
     }
 
     @Transactional
-    public Med createMed(Long userId, String name, String dailyIntake) {
+    public Med createMed(Long userId, String name, Integer dailyIntake) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
@@ -47,7 +47,7 @@ public class MedsService {
     }
 
     @Transactional
-    public Med updateMed(Long medId, String name, String dailyIntake) {
+    public Med updateMed(Long medId, String name, Integer dailyIntake) {
         Med med = getMedById(medId);
 
         med.setName(name);
