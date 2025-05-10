@@ -10,7 +10,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -35,7 +34,7 @@ public class BloodService {
     }
 
     @Transactional
-    public Blood addTest(Long userId, LocalDate date, String metric, Double value) {
+    public Blood addTest(Long userId, String date, String metric, Double value) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
@@ -49,7 +48,7 @@ public class BloodService {
     }
 
     @Transactional
-    public Blood updateTest(Long testId, LocalDate date, String metric, Double value) {
+    public Blood updateTest(Long testId, String date, String metric, Double value) {
         Blood test = getTestById(testId);
 
         test.setDate(date);
