@@ -3,6 +3,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import os
 from server.schematas import Blutbild
+from server.system_prompts import blutbild_prompt
 
 # Load environment variables from .env
 load_dotenv()
@@ -30,7 +31,7 @@ response = client.responses.parse(
     model="gpt-4.1",
     text_format=Blutbild,
     input=[
-        {   "role": "system", "content": "Please give the patient data you receive a short caption. After that, Make a list of Parameters present in the Bloodtest, where each parameter has a name and a value (as float)"},
+        {   "role": "system", "content": blutbild_prompt},
         {
             "role": "user",
             "content": [
