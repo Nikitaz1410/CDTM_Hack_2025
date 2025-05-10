@@ -19,14 +19,34 @@ const Header = ({ activeTab, user, onLogout }) => {
   // Get user initials for avatar
   const getUserInitials = () => {
     if (!user) return 'DR';
-    if (user.username) {
-      const names = user.username.split(' ');
+
+    // If email exists, use email for initials
+    if (user.email) {
+      const username = user.email.split('@')[0];
+      const names = username.split('.');
       if (names.length >= 2) {
         return `${names[0][0]}${names[1][0]}`.toUpperCase();
       }
-      return user.username.substring(0, 2).toUpperCase();
+      return username.substring(0, 2).toUpperCase();
     }
     return 'DR';
+  };
+
+  // Get display name from email
+  const getDisplayName = () => {
+    if (!user || !user.email) return '';
+
+    // Extract name from email (e.g., "luca.tester@example.com" -> "Luca Tester")
+    const username = user.email.split('@')[0];
+    const names = username.split('.');
+
+    if (names.length >= 2) {
+      return names.map(name =>
+          name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()
+      ).join(' ');
+    }
+
+    return username.charAt(0).toUpperCase() + username.slice(1).toLowerCase();
   };
 
   return (
@@ -36,7 +56,7 @@ const Header = ({ activeTab, user, onLogout }) => {
           {/* User info */}
           {user && (
               <div className="hidden sm:block text-sm text-gray-600">
-                {user.username}
+                {getDisplayName()}
               </div>
           )}
 

@@ -3,10 +3,10 @@ import api from '../config/api';
 
 const authService = {
     // Login user
-    async login(username, password) {
+    async login(email, password) {
         try {
             const response = await api.post('/api/users/login', {
-                username,
+                email,
                 password
             });
 
@@ -28,7 +28,7 @@ const authService = {
             const response = await api.post('/api/users/register', userData);
 
             // After successful registration, automatically log in
-            const loginResponse = await this.login(userData.username, userData.password);
+            const loginResponse = await this.login(userData.email, userData.password);
 
             return loginResponse;
         } catch (error) {
