@@ -17,17 +17,14 @@ server:
   port: 9898
   ssl:
     key-store: classpath:keystore.p12
-    key-store-password: aviboot
+    key-store-password: spadeboot
     key-store-type: PKCS12
-    key-alias: aviboot
+    key-alias: spadeboot
 
 app:
   jwt:
     secret: x1sGcA3LSXEd+C7f5qWbYqExtPilMBJPGHnSRAAHdiFVZ8XojeE1VwiAT4MHMiKrr4HtPZxFeoOxooGZTtIApih7yX2TIkMIbfYFmW2ht5NRsw37tNFvR+gsvzIyzafQSf/J+Nk9hsVChKbeT2sRRYSPt0dgo8olBZud2ic73gI=
     expirationMs: 86400000  # 24 hours
-
-
-
 
 # Optional Logging Config
 # logging:
