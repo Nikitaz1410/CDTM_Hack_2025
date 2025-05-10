@@ -1,0 +1,40 @@
+spring:
+  datasource:
+    url: "jdbc:mysql://217.154.85.170:3306/AviDB"
+    username: "avi"
+    password: "J7h0kegGhK6E1uFJa8br"
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+    show-sql: false
+
+server:
+  address: 0.0.0.0
+  port: 8080
+  ssl:
+    key-store: classpath:keystore.p12
+    key-store-password: spadeboot
+    key-store-type: PKCS12
+    key-alias: spadeboot
+
+app:
+  jwt:
+    secret: x1sGcA3LSXEd+C7f5qWbYqExtPilMBJPGHnSRAAHdiFVZ8XojeE1VwiAT4MHMiKrr4HtPZxFeoOxooGZTtIApih7yX2TIkMIbfYFmW2ht5NRsw37tNFvR+gsvzIyzafQSf/J+Nk9hsVChKbeT2sRRYSPt0dgo8olBZud2ic73gI=
+    expirationMs: 86400000  # 24 hours
+
+spotify:
+  client-id: 258c86af6a9e45ac8fac5185cceff480
+  client-secret: 49e380673645474691af255b87eb0364
+  redirect-uri: https://localhost:8080/api/spotify/callback
+
+genius:
+  access-token: qP5hP7fWwJjQF3vpsFu7cUPAm24vkLdDJYxqM7wDC9rS2NOozF6npvQSrQoTVqn2
+
+# Optional Logging Config
+# logging:
+#   level:
+#     root: OFF
