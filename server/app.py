@@ -6,6 +6,7 @@ from datetime import datetime
 import base64
 import mimetypes
 
+from server.connection.api_requests import JavaAPIClient
 from server.image_engine.image_recognition import ImageAnalyzer
 from server.image_engine.document_mapping import mapping
 
@@ -21,6 +22,7 @@ app.add_middleware(
 )
 
 image_model = ImageAnalyzer()
+api_client = JavaAPIClient()
 
 # Create upload directory if it doesn't exist
 UPLOAD_FOLDER = 'uploads'
@@ -47,7 +49,7 @@ async def upload_document(
         if document not in mapping:
             raise HTTPException(status_code=400, detail=f"Unknown document type: {document}")
 
-        schema, system_prompt = mapping[document]
+        schema, system_prompt = mapping(api_client)[document]
         analysis = image_model.run(schema, system_prompt, image_data)
         print(analysis)
 
