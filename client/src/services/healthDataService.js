@@ -51,7 +51,7 @@ class HealthDataService {
     }
 
     // Vaccination Record (Impfpass)
-    async getVaccinations() {
+    async getVaccyinations() {
         return this.withFallback(
             () => api.get('/api/vaccinations/user/me'),
             sampleHealthData.vaccinations

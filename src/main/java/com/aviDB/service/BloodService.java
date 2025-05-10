@@ -21,20 +21,20 @@ public class BloodService {
     @Autowired
     private UserRepository userRepository;
 
-    public List<Blood> getAllTestsForUser(Long userId) {
+    public List<Blood> getBloodsByUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
         return bloodTestRepository.findByUser(user);
     }
 
-    public Blood getTestById(Long testId) {
+    public Blood getBloodById(Long testId) {
         return bloodTestRepository.findById(testId)
                 .orElseThrow(() -> new NotFoundException("Blood test not found"));
     }
 
     @Transactional
-    public Blood addTest(Long userId, String date, String metric, Double value) {
+    public Blood addBlood(Long userId, String date, String metric, Double value) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
@@ -48,8 +48,8 @@ public class BloodService {
     }
 
     @Transactional
-    public Blood updateTest(Long testId, String date, String metric, Double value) {
-        Blood test = getTestById(testId);
+    public Blood updateBlood(Long testId, String date, String metric, Double value) {
+        Blood test = getBloodById(testId);
 
         test.setDate(date);
         test.setMetric(metric);
@@ -59,8 +59,8 @@ public class BloodService {
     }
 
     @Transactional
-    public void deleteTest(Long testId) {
-        Blood test = getTestById(testId);
+    public void deleteBlood(Long testId) {
+        Blood test = getBloodById(testId);
         bloodTestRepository.delete(test);
     }
 }

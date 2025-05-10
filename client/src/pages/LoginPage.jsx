@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Heart, Loader, AlertCircle } from 'lucide-react';
 import authService from '../services/authService';
 
-const LoginPage = ({ onLogin }) => {
+const LoginPage = ({ onLogin, onRegistration }) => {
     const [isLogin, setIsLogin] = useState(true);
     const [formData, setFormData] = useState({
         username: '',
@@ -33,13 +33,13 @@ const LoginPage = ({ onLogin }) => {
                 const response = await authService.login(formData.username, formData.password);
                 onLogin(response.user);
             } else {
-                // Registration
+                // Registration - new users need onboarding
                 const response = await authService.register({
                     username: formData.username,
                     password: formData.password,
                     email: formData.email
                 });
-                onLogin(response.user);
+                onRegistration(response.user); // This triggers onboarding
             }
         } catch (err) {
             setError(err.message);
