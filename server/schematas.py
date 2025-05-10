@@ -10,8 +10,8 @@ class BlutParam(BaseModel):
     value: float
 
 class Blutbild(BaseModel):
-    caption: str
-    date: DateTime
+    status: str
+    date: str
     parameters: list[BlutParam]
 
 ### -------------- ###
