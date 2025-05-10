@@ -1,11 +1,18 @@
 // src/services/healthDataService.js
 import api, { pythonApi } from '../config/api';
 import { sampleHealthData, sampleDocuments } from '../data/sampleData';
+import authService from './authService';
 
 class HealthDataService {
     constructor() {
         this.isServerConnected = true;
         this.checkServerConnection();
+    }
+
+    // Get current user ID from auth service
+    getCurrentUserId() {
+        const user = authService.getCurrentUser();
+        return user ? user.id : null;
     }
 
     // Check server connection for Java backend
@@ -37,60 +44,84 @@ class HealthDataService {
 
     // Blood Test (Blutbild)
     async getBloodTests() {
+        const userId = this.getCurrentUserId();
+        if (!userId) throw new Error('No user ID available');
+
         return this.withFallback(
-            () => api.get('/blood/user/me'),
+            () => api.get(`/api/blood/user/${userId}`),
             sampleHealthData.bloodTests
         );
     }
 
     async addBloodTest(bloodTest) {
+        const userId = this.getCurrentUserId();
+        if (!userId) throw new Error('No user ID available');
+
         return this.withFallback(
-            () => api.post('/blood/user/me', bloodTest),
+            () => api.post(`/api/blood/user/${userId}`, bloodTest),
             { ...bloodTest, id: Date.now() }
         );
     }
 
     // Vaccination Record (Impfpass)
     async getVaccinations() {
+        const userId = this.getCurrentUserId();
+        if (!userId) throw new Error('No user ID available');
+
         return this.withFallback(
-            () => api.get('/vaccinations/user/me'),
+            () => api.get(`/api/vaccinations/user/${userId}`),
             sampleHealthData.vaccinations
         );
     }
 
     async addVaccination(vaccination) {
+        const userId = this.getCurrentUserId();
+        if (!userId) throw new Error('No user ID available');
+
         return this.withFallback(
-            () => api.post('/vaccinations/user/me', vaccination),
+            () => api.post(`/api/vaccinations/user/${userId}`, vaccination),
             { ...vaccination, id: Date.now() }
         );
     }
 
     // Medical Reports (Befunde)
     async getMedicalReports() {
+        const userId = this.getCurrentUserId();
+        if (!userId) throw new Error('No user ID available');
+
         return this.withFallback(
-            () => api.get('/reports/user/me'),
+            () => api.get(`/api/reports/user/${userId}`),
             sampleHealthData.medicalReports
         );
     }
 
     async addMedicalReport(report) {
+        const userId = this.getCurrentUserId();
+        if (!userId) throw new Error('No user ID available');
+
         return this.withFallback(
-            () => api.post('/reports/user/me', report),
+            () => api.post(`/api/reports/user/${userId}`, report),
             { ...report, id: Date.now() }
         );
     }
 
     // Medication (Medikation)
     async getMedications() {
+        const userId = this.getCurrentUserId();
+        if (!userId) throw new Error('No user ID available');
+
         return this.withFallback(
-            () => api.get('/meds/user/me'),
+            () => api.get(`/api/meds/user/${userId}`),
             sampleHealthData.medications
         );
     }
 
     async addMedication(medication) {
+        const userId = this.getCurrentUserId();
+        if (!userId) throw new Error('No user ID available');
+
         return this.withFallback(
-            () => api.post('/meds/user/me', medication),
+            () => api.post(`/api/meds/user/${userId}`, medication),
             { ...medication, id: Date.now() }
         );
     }
@@ -98,7 +129,7 @@ class HealthDataService {
     // Document Management - uploaded documents are stored by Java backend
     async getDocuments() {
         return this.withFallback(
-            () => api.get('/documents'),
+            () => api.get('/api/documents'),
             sampleDocuments
         );
     }
@@ -106,8 +137,17 @@ class HealthDataService {
     // Special handling for document upload - this goes to Python backend
     async uploadDocument(formData) {
         try {
+            // Ensure userId is included in the form data
+            const userId = this.getCurrentUserId();
+            if (!userId) {
+                throw new Error('No user ID available');
+            }
+
+            // Update the userId in formData if it's not already set correctly
+            formData.set('userId', userId);
+
             // Upload to Python backend for analysis
-            const response = await pythonApi.post('/upload-document', formData, {
+            const response = await pythonApi.post('/api/upload-document', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 }
