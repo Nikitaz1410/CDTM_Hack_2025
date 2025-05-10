@@ -21,12 +21,12 @@ public class BloodController {
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Blood>> getTestsForUser(@PathVariable Long userId) {
-        return ResponseEntity.ok(bloodTestService.getAllTestsForUser(userId));
+        return ResponseEntity.ok(bloodTestService.getBloodsByUser(userId));
     }
 
     @GetMapping("/{testId}")
     public ResponseEntity<Blood> getTestById(@PathVariable Long testId) {
-        return ResponseEntity.ok(bloodTestService.getTestById(testId));
+        return ResponseEntity.ok(bloodTestService.getBloodById(testId));
     }
 
     @PostMapping("/user/{userId}")
@@ -34,7 +34,7 @@ public class BloodController {
             @PathVariable Long userId,
             @Valid @RequestBody Blood dto
     ) {
-        Blood test = bloodTestService.addTest(userId, dto.getDate(), dto.getMetric(), dto.getValue());
+        Blood test = bloodTestService.addBlood(userId, dto.getDate(), dto.getMetric(), dto.getValue());
         return ResponseEntity.ok(test);
     }
 
@@ -43,13 +43,13 @@ public class BloodController {
             @PathVariable Long testId,
             @Valid @RequestBody Blood dto
     ) {
-        Blood updated = bloodTestService.updateTest(testId, dto.getDate(), dto.getMetric(), dto.getValue());
+        Blood updated = bloodTestService.updateBlood(testId, dto.getDate(), dto.getMetric(), dto.getValue());
         return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{testId}")
     public ResponseEntity<Void> deleteTest(@PathVariable Long testId) {
-        bloodTestService.deleteTest(testId);
+        bloodTestService.deleteBlood(testId);
         return ResponseEntity.noContent().build();
     }
 
