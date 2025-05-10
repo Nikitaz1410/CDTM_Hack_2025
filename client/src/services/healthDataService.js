@@ -48,7 +48,7 @@ class HealthDataService {
         if (!userId) throw new Error('No user ID available');
 
         return this.withFallback(
-            () => api.get(`/api/blood/user/${userId}`),
+            () => api.get(`/blood/user/${userId}`),
             sampleHealthData.bloodTests
         );
     }
@@ -58,7 +58,7 @@ class HealthDataService {
         if (!userId) throw new Error('No user ID available');
 
         return this.withFallback(
-            () => api.post(`/api/blood/user/${userId}`, bloodTest),
+            () => api.post(`/blood/user/${userId}`, bloodTest),
             { ...bloodTest, id: Date.now() }
         );
     }
@@ -69,7 +69,7 @@ class HealthDataService {
         if (!userId) throw new Error('No user ID available');
 
         return this.withFallback(
-            () => api.get(`/api/vaccinations/user/${userId}`),
+            () => api.get(`/vaccinations/user/${userId}`),
             sampleHealthData.vaccinations
         );
     }
@@ -79,7 +79,7 @@ class HealthDataService {
         if (!userId) throw new Error('No user ID available');
 
         return this.withFallback(
-            () => api.post(`/api/vaccinations/user/${userId}`, vaccination),
+            () => api.post(`/vaccinations/user/${userId}`, vaccination),
             { ...vaccination, id: Date.now() }
         );
     }
@@ -90,7 +90,7 @@ class HealthDataService {
         if (!userId) throw new Error('No user ID available');
 
         return this.withFallback(
-            () => api.get(`/api/reports/user/${userId}`),
+            () => api.get(`/reports/user/${userId}`),
             sampleHealthData.medicalReports
         );
     }
@@ -100,7 +100,7 @@ class HealthDataService {
         if (!userId) throw new Error('No user ID available');
 
         return this.withFallback(
-            () => api.post(`/api/reports/user/${userId}`, report),
+            () => api.post(`/reports/user/${userId}`, report),
             { ...report, id: Date.now() }
         );
     }
@@ -111,7 +111,7 @@ class HealthDataService {
         if (!userId) throw new Error('No user ID available');
 
         return this.withFallback(
-            () => api.get(`/api/meds/user/${userId}`),
+            () => api.get(`/meds/user/${userId}`),
             sampleHealthData.medications
         );
     }
@@ -121,7 +121,7 @@ class HealthDataService {
         if (!userId) throw new Error('No user ID available');
 
         return this.withFallback(
-            () => api.post(`/api/meds/user/${userId}`, medication),
+            () => api.post(`/meds/user/${userId}`, medication),
             { ...medication, id: Date.now() }
         );
     }
@@ -129,7 +129,7 @@ class HealthDataService {
     // Document Management - uploaded documents are stored by Java backend
     async getDocuments() {
         return this.withFallback(
-            () => api.get('/api/documents'),
+            () => api.get('/documents'),
             sampleDocuments
         );
     }
@@ -147,7 +147,7 @@ class HealthDataService {
             formData.set('userId', userId);
 
             // Upload to Python backend for analysis
-            const response = await pythonApi.post('/api/upload-document', formData, {
+            const response = await pythonApi.post('/upload-document', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 }
