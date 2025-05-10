@@ -2,8 +2,8 @@ import base64
 from openai import OpenAI
 from dotenv import load_dotenv
 import os
-from server.schematas import *
-from server.system_prompts import *
+from server.image_engine.schematas import *
+from server.image_engine.system_prompts import *
 
 class ImageAnalyzer:
     def __init__(self):
@@ -43,8 +43,8 @@ class ImageAnalyzer:
 
 if __name__ == "__main__":
     anal = ImageAnalyzer()
-    image_path = "./data/medikation1.jpg"
+    image_path = "../data/impfpass1.jpg"
     with open(image_path, "rb") as image_file:
         image = image_file.read()
-    print(anal.run(Medikation, medikation_prompt, image))
+    print(anal.run(Impfpass, impfpass_prompt, image))
 
