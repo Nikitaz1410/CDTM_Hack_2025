@@ -1,6 +1,5 @@
 package com.aviDB.api.controller;
 
-import com.aviDB.api.dto.request.user.BloodDto;
 import com.aviDB.domain.user.Blood;
 import com.aviDB.service.BloodService;
 
