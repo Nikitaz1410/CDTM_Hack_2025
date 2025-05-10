@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import os
@@ -33,29 +33,33 @@ if not os.path.exists(UPLOAD_FOLDER):
 # document can be one of the following: blutbild, impfpass, befund, medikation, other
 @app.post('/api/upload-document')
 async def upload_document(
-        image: UploadFile,
-        userId: int,
-        document: str = "other",
+        image: UploadFile = File(...),  # Explicitly use File, (...) means required
+        userId: int = Form(...),        # Expect userId as form data, required
+        document: str = Form("other"),  # Expect document as form data, with default
 ):
     try:
-        # Check if file is provided
+        # Check if file is provided (FastAPI handles this with File(...))
         if not image.filename:
-            raise HTTPException(status_code=400, detail="No file selected")
+            # This check might be redundant if image is File(...)
+            raise HTTPException(status_code=400, detail="No file selected or filename missing")
 
         # Read the image data
         image_data = await image.read()
 
         # Map to correct document type
-        if document not in mapping:
+        if document not in mapping(api_client): # Use mapping(api_client) here
             raise HTTPException(status_code=400, detail=f"Unknown document type: {document}")
 
-        schema, system_prompt = mapping(api_client)[document]
+        schema, system_prompt, function = mapping(api_client)[document] # Use mapping(api_client) here
         analysis = image_model.run(schema, system_prompt, image_data)
-        print(analysis)
+        print("TEST")
+        function(userId, analysis)
 
         # Generate unique filename
         timestamp_str = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"{timestamp_str}_{image.filename}"
+        # Sanitize original filename to prevent directory traversal or invalid characters
+        safe_original_filename = os.path.basename(image.filename or "unknown_file")
+        filename = f"{timestamp_str}_{safe_original_filename}"
         filepath = os.path.join(UPLOAD_FOLDER, filename)
 
         # Save the file
@@ -75,8 +79,12 @@ async def upload_document(
         return JSONResponse(content=response_data, status_code=200)
 
     except HTTPException:
-        raise
+        raise # Re-raise HTTPException if it's already one
     except Exception as e:
+        # Log the full error for debugging on the server
+        print(f"Unhandled error in upload_document: {type(e).__name__} - {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f'Failed to upload document: {str(e)}')
 
 
