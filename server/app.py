@@ -27,11 +27,13 @@ UPLOAD_FOLDER = 'uploads'
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-
+# DAS IST DEIN ENDPOINT SEBI
+# document can be one of the following: blutbild, impfpass, befund, medikation, other
 @app.post('/api/upload-document')
 async def upload_document(
-        image: UploadFile = File(...),
-        document: str = "other"
+        image: UploadFile,
+        userId: int,
+        document: str = "other",
 ):
     try:
         # Check if file is provided
