@@ -1,2 +1,5 @@
 google-genai
 flask
+openai
+dotenv
+base64io

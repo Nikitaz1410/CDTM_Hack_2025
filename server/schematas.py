@@ -1,3 +1,5 @@
+from xmlrpc.client import DateTime
+
 from pydantic import BaseModel
 
 
@@ -9,6 +11,7 @@ class BlutParam(BaseModel):
 
 class Blutbild(BaseModel):
     caption: str
+    date: DateTime
     parameters: list[BlutParam]
 
 ### -------------- ###
