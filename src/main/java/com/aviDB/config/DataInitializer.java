@@ -32,6 +32,8 @@ public class DataInitializer implements CommandLineRunner {
         // Add admin user if it doesn't exist
         if (userRepository.findByEmail("Sebi@avi-health.de").isEmpty()) {
             User adminUser = new User();
+            adminUser.setFirst("Sebi");
+            adminUser.setLast("Tester");
             adminUser.setEmail("Sebi@avi-health.de");
             adminUser.setPassword(passwordEncoder.encode("admin123"));
             adminUser.setRole("ROLE_ADMIN");
@@ -41,18 +43,27 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         // Add regular players
-        String[] playerNames = {"Daniel@avi-health.de", "Luca@avi-health.de", "Nikita@avi-health.de"};
+        String[] playerEmails = {"Daniel@avi-health.de", "Luca@avi-health.de", "Nikita@avi-health.de"};
         String defaultPassword = "password123";
 
-        for (String name : playerNames) {
-            if (userRepository.findByEmail(name).isEmpty()) {
+        for (String email : playerEmails) {
+            String normalizedEmail = email.toLowerCase();
+
+            if (userRepository.findByEmail(normalizedEmail).isEmpty()) {
                 User player = new User();
-                player.setEmail(name.toLowerCase() + "@avi-health.de");
+
+                // Extract first name from email
+                String firstName = normalizedEmail.split("@")[0];
+                firstName = firstName.substring(0, 1).toUpperCase() + firstName.substring(1); // Capitalize
+
+                player.setFirst(firstName);
+                player.setLast("Tester");
+                player.setEmail(normalizedEmail);
                 player.setPassword(passwordEncoder.encode(defaultPassword));
                 player.setRole("ROLE_USER");
 
                 users.add(player);
-                System.out.println("Player created with username: " + name + " and password: " + defaultPassword);
+                System.out.println("Player created with email: " + normalizedEmail + " and password: " + defaultPassword);
             }
         }
 
