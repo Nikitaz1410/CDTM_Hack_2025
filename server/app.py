@@ -5,8 +5,13 @@ import os
 from datetime import datetime
 import base64
 
+from server.image_engine.image_recognition import ImageAnalyzer
+from server.image_engine.document_mapping import mapping
+
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
+
+image_model = ImageAnalyzer()
 
 # Create upload directory if it doesn't exist
 UPLOAD_FOLDER = 'uploads'
@@ -35,6 +40,11 @@ def upload_document():
         timestamp = request.form.get('timestamp', datetime.now().isoformat())
         user_id = request.form.get('userId', 'unknown')
         document_type = request.form.get('documentType', 'general')
+
+        # Map to correct document type
+        schema, system_prompt = mapping[document_type]
+        analysis = image_model.run(schema, system_prompt, file)
+        print(analysis)
 
         # Generate unique filename
         timestamp_str = datetime.now().strftime('%Y%m%d_%H%M%S')
