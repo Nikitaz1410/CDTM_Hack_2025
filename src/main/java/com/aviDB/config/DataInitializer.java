@@ -30,25 +30,23 @@ public class DataInitializer implements CommandLineRunner {
         List<User> users = new ArrayList<>();
 
         // Add admin user if it doesn't exist
-        if (userRepository.findByUsername("Sebi").isEmpty()) {
+        if (userRepository.findByEmail("Sebi@avi-health.de").isEmpty()) {
             User adminUser = new User();
-            adminUser.setUsername("Sebi");
             adminUser.setEmail("Sebi@avi-health.de");
             adminUser.setPassword(passwordEncoder.encode("admin123"));
             adminUser.setRole("ROLE_ADMIN");
 
             users.add(adminUser);
-            System.out.println("Admin user created with username: Hoerter and password: admin123");
+            System.out.println("Admin user created with username: Sebi@avi-health.de and password: admin123");
         }
 
         // Add regular players
-        String[] playerNames = {"Sebastian", "Luca", "Nikita"};
+        String[] playerNames = {"Daniel@avi-health.de", "Luca@avi-health.de", "Nikita@avi-health.de"};
         String defaultPassword = "password123";
 
         for (String name : playerNames) {
-            if (userRepository.findByUsername(name).isEmpty()) {
+            if (userRepository.findByEmail(name).isEmpty()) {
                 User player = new User();
-                player.setUsername(name);
                 player.setEmail(name.toLowerCase() + "@avi-health.de");
                 player.setPassword(passwordEncoder.encode(defaultPassword));
                 player.setRole("ROLE_USER");
