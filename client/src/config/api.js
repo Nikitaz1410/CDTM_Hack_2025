@@ -2,8 +2,8 @@
 import axios from 'axios';
 
 // Base URL for API - using HTTPS for localhost testing
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://localhost:8080';
-const PYTHON_API_BASE_URL = process.env.REACT_APP_PYTHON_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+const PYTHON_API_BASE_URL = process.env.REACT_APP_PYTHON_API_URL || '/api-img';
 
 // Create axios instance for Java backend (default)
 const api = axios.create({

@@ -22,10 +22,10 @@ public class BloodService {
     private UserRepository userRepository;
 
     public List<Blood> getBloodsByUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
-
-        return bloodTestRepository.findByUser(user);
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("User not found");
+        }
+        return bloodTestRepository.findByUserId(userId);
     }
 
     public Blood getBloodById(Long testId) {
