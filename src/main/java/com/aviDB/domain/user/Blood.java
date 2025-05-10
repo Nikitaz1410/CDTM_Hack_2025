@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Entity
-@Table(name = "Blood")
+@Table(name = "blood")
 public class Blood {
 
     @Id
@@ -18,15 +18,15 @@ public class Blood {
 
     // Link to User
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    //@JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "test_date", nullable = false)
+    //@Column(name = "test_date", nullable = false)
     private LocalDate date;
 
-    @Column(nullable = false)
+    //@Column(nullable = false)
     private String metric;
 
-    @Column(nullable = false)
+    //@Column(nullable = false)
     private Double value;
 }

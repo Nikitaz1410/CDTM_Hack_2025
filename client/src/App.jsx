@@ -1,7 +1,6 @@
 // src/App.jsx
 import React, { useState, useEffect } from 'react';
 import TabBar from './components/layout/TabBar';
-import ChatPage from './pages/ChatPage';
 import DocumentScanPage from './pages/DocumentScanPage';
 import MyFactsPage from './pages/MyFactsPage';
 import Header from './components/layout/Header';
@@ -94,8 +93,6 @@ const App = () => {
   // Render regular app content
   const renderContent = () => {
     switch(activeTab) {
-      case 'chat':
-        return <ChatPage />;
       case 'documentScan':
         return <DocumentScanPage />;
       case 'myFacts':

@@ -1,10 +1,9 @@
 // src/components/layout/TabBar.jsx
 import React from 'react';
-import { MessageCircle, FileText, User } from 'lucide-react';
+import { FileText, User } from 'lucide-react';
 
 const TabBar = ({ activeTab, setActiveTab }) => {
   const tabs = [
-    { id: 'chat', label: 'Chat', icon: <MessageCircle /> },
     { id: 'documentScan', label: 'Scan', icon: <FileText /> },
     { id: 'myFacts', label: 'My Facts', icon: <User /> }
   ];

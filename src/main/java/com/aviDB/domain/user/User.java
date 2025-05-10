@@ -18,10 +18,10 @@ public class User {
     @Column(unique = true)
     private String username;
 
-    @Column(name = "first_name", nullable = false)
+    //@Column(name = "first_name", nullable = false)
     private String first;
 
-    @Column(name = "last_name", nullable = false)
+    //@Column(name = "last_name", nullable = false)
     private String last;
 
     private String weight;
@@ -31,11 +31,11 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(unique = true, nullable = false)
+    //@Column(unique = true, nullable = false)
     @Email
     private String email;
 
-    @Column(name = "role")
+    //@Column(name = "role")
     private String role = "ROLE_USER"; // Default role
 
     // Method to check if user has admin role

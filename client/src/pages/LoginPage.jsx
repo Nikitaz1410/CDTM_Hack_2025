@@ -29,6 +29,7 @@ const LoginPage = ({ onLogin }) => {
 
         try {
             if (isLogin) {
+                // For login, we use the username field (which is actually the email)
                 const response = await authService.login(formData.username, formData.password);
                 onLogin(response.user);
             } else {
@@ -82,14 +83,15 @@ const LoginPage = ({ onLogin }) => {
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Username
+                        {isLogin ? 'Email' : 'Username'}
                     </label>
                     <input
-                        type="text"
+                        type={isLogin ? 'email' : 'text'}
                         name="username"
                         value={formData.username}
                         onChange={handleChange}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        placeholder={isLogin ? 'Enter your email' : 'Enter username'}
                         required
                     />
                 </div>
@@ -105,6 +107,7 @@ const LoginPage = ({ onLogin }) => {
                             value={formData.email}
                             onChange={handleChange}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            placeholder="Enter your email"
                             required
                         />
                     </div>
@@ -120,6 +123,7 @@ const LoginPage = ({ onLogin }) => {
                         value={formData.password}
                         onChange={handleChange}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        placeholder="Enter your password"
                         required
                     />
                 </div>

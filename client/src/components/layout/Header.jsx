@@ -5,14 +5,12 @@ import { LogOut, User } from 'lucide-react';
 const Header = ({ activeTab, user, onLogout }) => {
   const getTitle = () => {
     switch(activeTab) {
-      case 'chat':
-        return 'Chat';
       case 'documentScan':
-        return 'Document Scan';
+        return 'Dokumente scannen';
       case 'myFacts':
-        return 'My Facts';
+        return 'Gesundheitsdaten';
       default:
-        return 'Health Tracker';
+        return 'Gesundheits-Tracker';
     }
   };
 

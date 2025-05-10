@@ -49,7 +49,7 @@ public class UserService {
 
         // Create the base User entity
         User user = new User();
-        user.setUsername(registerDto.getEmail());
+        user.setUsername(registerDto.getEmail()); // Set email as username
         user.setEmail(registerDto.getEmail());
         user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
         user.setRole("ROLE_USER"); // Default role

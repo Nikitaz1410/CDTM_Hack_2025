@@ -3,10 +3,10 @@ import api from '../config/api';
 
 const authService = {
     // Login user
-    async login(email, password) {
+    async login(username, password) {  // Changed parameter name for clarity
         try {
             const response = await api.post('/api/users/login', {
-                email,
+                username,  // Changed from email to username
                 password
             });
 
@@ -28,6 +28,7 @@ const authService = {
             const response = await api.post('/api/users/register', userData);
 
             // After successful registration, automatically log in
+            // Since registration sets username = email, we use email for login
             const loginResponse = await this.login(userData.email, userData.password);
 
             return loginResponse;
