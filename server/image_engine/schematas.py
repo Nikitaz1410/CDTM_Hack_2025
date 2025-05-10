@@ -42,10 +42,8 @@ class Befund(BaseModel):
 ### -- Medikation -- ###
 
 class Medikament(BaseModel):
-    morning: int
-    noon: int
-    night: int
-    comment: str
+    name: str
+    daily_intake: int
 
 class Medikation(BaseModel):
     status: str
