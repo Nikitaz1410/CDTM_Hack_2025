@@ -31,7 +31,7 @@ if not os.path.exists(UPLOAD_FOLDER):
 
 # DAS IST DEIN ENDPOINT SEBI
 # document can be one of the following: blutbild, impfpass, befund, medikation, other
-@app.post('/api/upload-document')
+@app.post('/api-img/upload-document')
 async def upload_document(
         image: UploadFile = File(...),  # Explicitly use File, (...) means required
         userId: int = Form(...),        # Expect userId as form data, required
