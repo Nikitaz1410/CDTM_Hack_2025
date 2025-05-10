@@ -1,6 +1,5 @@
 package com.aviDB.api.controller;
 
-import com.aviDB.api.dto.request.user.BloodDto;
 import com.aviDB.domain.user.Blood;
 import com.aviDB.service.BloodService;
 
@@ -14,7 +13,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/blood-tests")
+@RequestMapping("/api/blood")
 public class BloodController {
 
     @Autowired
