@@ -1,5 +1,3 @@
-from xmlrpc.client import DateTime
-
 from pydantic import BaseModel
 
 
@@ -15,3 +13,15 @@ class Blutbild(BaseModel):
     parameters: list[BlutParam]
 
 ### -------------- ###
+
+### -- Impfpass -- ###
+
+class Impfung:
+    Impfstoffname: str
+    Krankheit: str
+    Impfdatum: str
+    Dosisnummer: str
+    Impfstoffhersteller: str
+
+class Impfpass:
+    impfungen: list[Impfung]

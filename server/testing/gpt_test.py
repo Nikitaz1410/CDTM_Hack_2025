@@ -44,4 +44,5 @@ response = client.responses.parse(
     ],
 )
 
-print(response.output_parsed.model_dump_json(indent=2))
+print(dict(response.output_parsed))
+#print(response.output_parsed.model_dump_json(indent=2))
