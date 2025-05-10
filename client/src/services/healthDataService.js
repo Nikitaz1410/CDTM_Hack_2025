@@ -38,14 +38,14 @@ class HealthDataService {
     // Blood Test (Blutbild)
     async getBloodTests() {
         return this.withFallback(
-            () => api.get('/api/blood/user/me'),
+            () => api.get('/blood/user/me'),
             sampleHealthData.bloodTests
         );
     }
 
     async addBloodTest(bloodTest) {
         return this.withFallback(
-            () => api.post('/api/blood/user/me', bloodTest),
+            () => api.post('/blood/user/me', bloodTest),
             { ...bloodTest, id: Date.now() }
         );
     }
@@ -53,14 +53,14 @@ class HealthDataService {
     // Vaccination Record (Impfpass)
     async getVaccinations() {
         return this.withFallback(
-            () => api.get('/api/vaccinations/user/me'),
+            () => api.get('/vaccinations/user/me'),
             sampleHealthData.vaccinations
         );
     }
 
     async addVaccination(vaccination) {
         return this.withFallback(
-            () => api.post('/api/vaccinations/user/me', vaccination),
+            () => api.post('/vaccinations/user/me', vaccination),
             { ...vaccination, id: Date.now() }
         );
     }
@@ -68,14 +68,14 @@ class HealthDataService {
     // Medical Reports (Befunde)
     async getMedicalReports() {
         return this.withFallback(
-            () => api.get('/api/reports/user/me'),
+            () => api.get('/reports/user/me'),
             sampleHealthData.medicalReports
         );
     }
 
     async addMedicalReport(report) {
         return this.withFallback(
-            () => api.post('/api/reports/user/me', report),
+            () => api.post('/reports/user/me', report),
             { ...report, id: Date.now() }
         );
     }
@@ -83,14 +83,14 @@ class HealthDataService {
     // Medication (Medikation)
     async getMedications() {
         return this.withFallback(
-            () => api.get('/api/meds/user/me'),
+            () => api.get('/meds/user/me'),
             sampleHealthData.medications
         );
     }
 
     async addMedication(medication) {
         return this.withFallback(
-            () => api.post('/api/meds/user/me', medication),
+            () => api.post('/meds/user/me', medication),
             { ...medication, id: Date.now() }
         );
     }
@@ -98,7 +98,7 @@ class HealthDataService {
     // Document Management - uploaded documents are stored by Java backend
     async getDocuments() {
         return this.withFallback(
-            () => api.get('/api/documents'),
+            () => api.get('/documents'),
             sampleDocuments
         );
     }
@@ -107,7 +107,7 @@ class HealthDataService {
     async uploadDocument(formData) {
         try {
             // Upload to Python backend for analysis
-            const response = await pythonApi.post('/api/upload-document', formData, {
+            const response = await pythonApi.post('/upload-document', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 }

@@ -5,7 +5,7 @@ const authService = {
     // Login user
     async login(username, password) {
         try {
-            const response = await api.post('/api/users/login', {
+            const response = await api.post('/users/login', {
                 username,
                 password
             });
@@ -25,7 +25,7 @@ const authService = {
     // Register user
     async register(userData) {
         try {
-            const response = await api.post('/api/users/register', userData);
+            const response = await api.post('/users/register', userData);
 
             // After successful registration, automatically log in
             // Since registration sets username = email, we use email for login
@@ -69,7 +69,7 @@ const authService = {
 
             // 1. Update user profile with personal information
             try {
-                await api.put('/api/users/me', {
+                await api.put('/users/me', {
                     ...onboardingData.personalInfo
                 });
             } catch (error) {
@@ -80,7 +80,7 @@ const authService = {
             if (onboardingData.medications.manualData?.length > 0) {
                 for (const medication of onboardingData.medications.manualData) {
                     try {
-                        await api.post(`/api/meds/user/${user.id}`, {
+                        await api.post(`/meds/user/${user.id}`, {
                             name: medication.name,
                             dailyIntake: parseInt(medication.dailyIntake) || 1
                         });
@@ -94,7 +94,7 @@ const authService = {
             if (onboardingData.vaccinations.manualData?.length > 0) {
                 for (const vaccination of onboardingData.vaccinations.manualData) {
                     try {
-                        await api.post(`/api/vaccinations/user/${user.id}`, {
+                        await api.post(`/vaccinations/user/${user.id}`, {
                             name: vaccination.name,
                             disease: vaccination.disease,
                             date: vaccination.date
@@ -109,7 +109,7 @@ const authService = {
             if (onboardingData.medicalReports.manualData?.length > 0) {
                 for (const report of onboardingData.medicalReports.manualData) {
                     try {
-                        await api.post(`/api/reports/user/${user.id}`, {
+                        await api.post(`/reports/user/${user.id}`, {
                             date: report.date,
                             summary: report.summary || report.title,
                             text: report.summary || "Befund aus Onboarding"
@@ -147,7 +147,7 @@ const authService = {
                     formData.append('document', documentType);
 
                     // Upload to Python backend for analysis (which will then save to database)
-                    await pythonApi.post('/api/upload-document', formData, {
+                    await pythonApi.post('/upload-document', formData, {
                         headers: {
                             'Content-Type': 'multipart/form-data',
                         }
