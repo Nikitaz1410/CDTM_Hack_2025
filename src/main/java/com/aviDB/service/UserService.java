@@ -39,12 +39,17 @@ public class UserService {
 
     @Transactional
     public User register(RegisterDto registerDto) {
+        if (userRepository.existsByUsername(registerDto.getUsername())) {
+            throw new IllegalArgumentException("Username already exists");
+        }
+
         if (userRepository.existsByEmail(registerDto.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
 
         // Create the base User entity
         User user = new User();
+        user.setUsername(registerDto.getEmail());
         user.setEmail(registerDto.getEmail());
         user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
         user.setRole("ROLE_USER"); // Default role
@@ -59,7 +64,7 @@ public class UserService {
         // Perform authentication using Spring Security
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginDto.getEmail(),
+                        loginDto.getUsername(),
                         loginDto.getPassword()
                 )
         );
@@ -84,11 +89,22 @@ public class UserService {
                 .orElseThrow(() -> new NotFoundException("User not found"));
     }
 
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User not found with username: " + username));
+    }
+
 
 
     @Transactional
     public User updateUser(Long userId, UpdateUserDto updateUserDto) {
         User user = getUserById(userId);
+
+        // Check if username is being changed and if it's already taken
+        if (!user.getUsername().equals(updateUserDto.getUsername()) &&
+                userRepository.existsByUsername(updateUserDto.getUsername())) {
+            throw new IllegalArgumentException("Username already exists");
+        }
 
         // Check if email is being changed and if it's already taken
         if (!user.getEmail().equals(updateUserDto.getEmail()) &&
@@ -96,6 +112,7 @@ public class UserService {
             throw new IllegalArgumentException("Email already exists");
         }
 
+        user.setUsername(updateUserDto.getEmail());
         user.setEmail(updateUserDto.getEmail());
 
         return userRepository.save(user);

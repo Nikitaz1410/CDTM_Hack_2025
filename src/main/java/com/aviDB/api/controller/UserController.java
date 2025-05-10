@@ -76,7 +76,6 @@ public class UserController {
         return ResponseEntity.ok(userDto);
     }
 
-
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/role")
     public ResponseEntity<UserDto> updateUserRole(@PathVariable Long id, @Valid @RequestBody RoleChangeDto roleChangeDto) {
@@ -85,10 +84,10 @@ public class UserController {
         return ResponseEntity.ok(userDto);
     }
 
-
     private UserDto convertToDto(User user) {
         UserDto dto = new UserDto();
         dto.setId(user.getId());
+        dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
         dto.setIsAdmin(user.isAdmin());
         return dto;

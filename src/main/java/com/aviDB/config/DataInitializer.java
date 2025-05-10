@@ -37,6 +37,7 @@ public class DataInitializer implements CommandLineRunner {
             adminUser.setEmail("Sebi@avi-health.de");
             adminUser.setPassword(passwordEncoder.encode("admin123"));
             adminUser.setRole("ROLE_ADMIN");
+            adminUser.setUsername(adminUser.getEmail());
 
             users.add(adminUser);
             System.out.println("Admin user created with username: Sebi@avi-health.de and password: admin123");
@@ -61,6 +62,7 @@ public class DataInitializer implements CommandLineRunner {
                 player.setEmail(normalizedEmail);
                 player.setPassword(passwordEncoder.encode(defaultPassword));
                 player.setRole("ROLE_USER");
+                player.setUsername(player.getEmail());
 
                 users.add(player);
                 System.out.println("Player created with email: " + normalizedEmail + " and password: " + defaultPassword);
