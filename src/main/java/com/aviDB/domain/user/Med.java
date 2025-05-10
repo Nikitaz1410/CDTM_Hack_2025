@@ -14,13 +14,13 @@ public class Med {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", nullable = false)
+    //@Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "daily_intake")
+    //@Column(name = "daily_intake")
     private String dailyIntake;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    //@JoinColumn(name = "user_id", nullable = false)
     private com.aviDB.domain.user.User user;
 }
