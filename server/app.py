@@ -1,15 +1,24 @@
-# server/server.py (Your Flask server)
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 import os
 from datetime import datetime
 import base64
+import mimetypes
 
 from server.image_engine.image_recognition import ImageAnalyzer
 from server.image_engine.document_mapping import mapping
 
-app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+app = FastAPI()
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, be more specific about origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 image_model = ImageAnalyzer()
 
@@ -19,46 +28,35 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 
-@app.route('/api/upload-document', methods=['POST'])
-def upload_document():
+@app.post('/api/upload-document')
+async def upload_document(
+        image: UploadFile = File(...),
+        document: str = "other"
+):
     try:
-        # Check if image file is present
-        if 'image' not in request.files:
-            return jsonify({
-                'error': 'No image file provided'
-            }), 400
+        # Check if file is provided
+        if not image.filename:
+            raise HTTPException(status_code=400, detail="No file selected")
 
-        file = request.files['image']
-
-        # Check if file has a filename
-        if file.filename == '':
-            return jsonify({
-                'error': 'No file selected'
-            }), 400
-
-        # Get additional metadata
-        timestamp = request.form.get('timestamp', datetime.now().isoformat())
-        user_id = request.form.get('userId', 'unknown')
-        document_type = request.form.get('documentType', 'general')
+        # Read the image data
+        image_data = await image.read()
 
         # Map to correct document type
-        schema, system_prompt = mapping[document_type]
-        analysis = image_model.run(schema, system_prompt, file)
+        if document not in mapping:
+            raise HTTPException(status_code=400, detail=f"Unknown document type: {document}")
+
+        schema, system_prompt = mapping[document]
+        analysis = image_model.run(schema, system_prompt, image_data)
         print(analysis)
 
         # Generate unique filename
         timestamp_str = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"{user_id}_{timestamp_str}_{file.filename}"
+        filename = f"{timestamp_str}_{image.filename}"
         filepath = os.path.join(UPLOAD_FOLDER, filename)
 
         # Save the file
-        file.save(filepath)
-
-        # Here you can add additional processing:
-        # - OCR processing using tesseract or similar
-        # - Image analysis
-        # - Store metadata in database
-        # - Extract text from document
+        with open(filepath, 'wb') as f:
+            f.write(image_data)
 
         # Example response
         response_data = {
@@ -66,25 +64,20 @@ def upload_document():
             'message': 'Document uploaded successfully',
             'filename': filename,
             'filepath': filepath,
-            'timestamp': timestamp,
-            'userId': user_id,
-            'documentType': document_type,
             'size': os.path.getsize(filepath),
-            # You can add extracted text here later
-            # 'extractedText': extracted_text,
-            # 'analysis': analysis_results
+            'analysis': analysis  # Include analysis results
         }
 
-        return jsonify(response_data), 200
+        return JSONResponse(content=response_data, status_code=200)
 
+    except HTTPException:
+        raise
     except Exception as e:
-        return jsonify({
-            'error': f'Failed to upload document: {str(e)}'
-        }), 500
+        raise HTTPException(status_code=500, detail=f'Failed to upload document: {str(e)}')
 
 
-@app.route('/api/documents', methods=['GET'])
-def get_documents():
+@app.get('/api/documents')
+async def get_documents():
     """Get list of uploaded documents"""
     try:
         documents = []
@@ -99,15 +92,13 @@ def get_documents():
                     'url': f'/api/document/{filename}'
                 })
 
-        return jsonify(documents), 200
+        return JSONResponse(content=documents, status_code=200)
     except Exception as e:
-        return jsonify({
-            'error': f'Failed to get documents: {str(e)}'
-        }), 500
+        raise HTTPException(status_code=500, detail=f'Failed to get documents: {str(e)}')
 
 
-@app.route('/api/document/<filename>', methods=['GET'])
-def get_document(filename):
+@app.get('/api/document/{filename}')
+async def get_document(filename: str):
     """Get specific document"""
     try:
         filepath = os.path.join(UPLOAD_FOLDER, filename)
@@ -116,24 +107,23 @@ def get_document(filename):
                 file_data = f.read()
 
             # Return base64 encoded image data
-            import mimetypes
             mime_type = mimetypes.guess_type(filepath)[0] or 'application/octet-stream'
             encoded = base64.b64encode(file_data).decode('utf-8')
 
-            return jsonify({
+            return JSONResponse(content={
                 'filename': filename,
                 'mimeType': mime_type,
                 'data': f'data:{mime_type};base64,{encoded}'
-            }), 200
+            }, status_code=200)
         else:
-            return jsonify({
-                'error': 'Document not found'
-            }), 404
+            raise HTTPException(status_code=404, detail='Document not found')
+    except HTTPException:
+        raise
     except Exception as e:
-        return jsonify({
-            'error': f'Failed to get document: {str(e)}'
-        }), 500
+        raise HTTPException(status_code=500, detail=f'Failed to get document: {str(e)}')
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    import uvicorn
+
+    uvicorn.run(app, host="127.0.0.1", port=5000)

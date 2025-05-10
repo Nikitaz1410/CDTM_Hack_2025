@@ -3,3 +3,6 @@ openai
 dotenv
 base64io
 flask-cors
+uvicorn
+fastapi
+python-multipart
