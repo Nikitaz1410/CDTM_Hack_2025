@@ -23,7 +23,7 @@ class ImageAnalyzer:
     def run(self, schema, system_prompt, image):
         base64_image = self.encode_image(image)
         response = self.client.responses.parse(
-            model="gpt-4.1",
+            model="o4-mini",
             text_format=schema,
             input=[
                 {"role": "system", "content": system_prompt},
@@ -39,12 +39,12 @@ class ImageAnalyzer:
             ],
         )
 
-        return response.output_parsed.model_dump_json()
+        return response.output_parsed.model_dump_json(indent=2)
 
 if __name__ == "__main__":
     anal = ImageAnalyzer()
-    image_path = "./data/PXL_20250509_215016645.jpg"
+    image_path = "./data/medikation1.jpg"
     with open(image_path, "rb") as image_file:
         image = image_file.read()
-    print(anal.run(Blutbild, blutbild_prompt, image))
+    print(anal.run(Medikation, medikation_prompt, image))
 

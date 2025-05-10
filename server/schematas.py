@@ -16,12 +16,38 @@ class Blutbild(BaseModel):
 
 ### -- Impfpass -- ###
 
-class Impfung:
+class Impfung(BaseModel):
     Impfstoffname: str
-    Krankheit: str
+    Krankheit: list[str]
     Impfdatum: str
-    Dosisnummer: str
-    Impfstoffhersteller: str
 
-class Impfpass:
+class Impfpass(BaseModel):
+    status: str
     impfungen: list[Impfung]
+
+### -------------- ###
+
+### -- Befunde -- ###
+
+class Paragraph(BaseModel):
+    caption: str
+    full_text: str
+
+class Befund(BaseModel):
+    status: str
+    date: str
+    summary: str
+    paragraphs: list[Paragraph]
+
+### -- Medikation -- ###
+
+class Medikament(BaseModel):
+    morning: int
+    noon: int
+    night: int
+    comment: str
+
+class Medikation(BaseModel):
+    status: str
+    date: str
+    medikamente: list[Medikament]
