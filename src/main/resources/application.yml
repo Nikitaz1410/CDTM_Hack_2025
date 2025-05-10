@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: "jdbc:mysql://217.154.85.170:3306/SpadeDB"
-    username: "spade"
-    password: "v0eJtpsCwHJGq5C4509p"
+    url: "jdbc:mysql://217.154.85.170:3306/AviDB"
+    username: "avi"
+    password: "J7h0kegGhK6E1uFJa8br"
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
