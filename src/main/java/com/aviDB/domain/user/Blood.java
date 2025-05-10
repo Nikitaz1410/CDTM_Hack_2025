@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Entity
-@Table(name = "blood_tests")
+@Table(name = "Blood")
 public class Blood {
 
     @Id
