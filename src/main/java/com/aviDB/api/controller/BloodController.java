@@ -14,7 +14,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/blood-tests")
+@RequestMapping("/api/blood")
 public class BloodController {
 
     @Autowired
