@@ -1,9 +1,11 @@
 // src/pages/MyFactsPage.jsx
 import React, { useState, useEffect } from 'react';
 import CategoryCard from '../components/ui/CategoryCard';
+import PersonalInfoCard from '../components/ui/PersonalInfoCard';
 import ServerStatusIndicator from '../components/ui/ServerStatusIndicator';
 import { Droplet, Syringe, FileText, Pill, Plus } from 'lucide-react';
 import healthDataService from '../services/healthDataService';
+import authService from '../services/authService';
 import BloodTestsDetail from './detail/BloodTestDetail';
 import VaccinationsDetail from './detail/VaccinationDetail';
 import MedicalReportsDetail from './detail/MedicalReportDetail';
@@ -19,10 +21,28 @@ const MyFactsPage = () => {
     medicalReports: [],
     medications: []
   });
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     loadHealthData();
+    loadUserData();
   }, []);
+
+  const loadUserData = async () => {
+    try {
+      // Get current user data
+      const currentUser = authService.getCurrentUser();
+      if (currentUser) {
+        // Fetch updated user data from server
+        const response = await healthDataService.api.get('/users/me');
+        setUser(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to load user data:', error);
+      // Use cached user data if server fails
+      setUser(authService.getCurrentUser());
+    }
+  };
 
   const loadHealthData = async () => {
     try {
@@ -131,6 +151,11 @@ const MyFactsPage = () => {
     loadHealthData();
   };
 
+  const handleEditPersonalInfo = () => {
+    // TODO: Implement personal info editing
+    console.log('Edit personal info');
+  };
+
   // Render detail view
   if (activeDetail) {
     switch (activeDetail) {
@@ -156,6 +181,12 @@ const MyFactsPage = () => {
 
         <div className="mb-6">
           <h2 className="text-2xl font-bold mb-4">Gesundheitsdaten</h2>
+
+          {/* Personal Information Card */}
+          <div className="mb-6">
+            <PersonalInfoCard user={user} onEdit={handleEditPersonalInfo} />
+          </div>
+
           {loading ? (
               <div className="flex items-center justify-center h-32">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>

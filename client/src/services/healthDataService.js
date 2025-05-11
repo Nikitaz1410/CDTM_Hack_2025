@@ -7,6 +7,7 @@ class HealthDataService {
     constructor() {
         this.isServerConnected = true;
         this.isPythonServerConnected = true;
+        this.api = api; // Expose the api instance for direct use
     }
 
     // Get current user ID from auth service
@@ -54,7 +55,7 @@ class HealthDataService {
         return date.toISOString().split('T')[0];
     }
 
-    // Blood Test (Blutbild) - Already fixed
+    // Blood Test (Blutbild)
     async getBloodTests() {
         const userId = this.getCurrentUserId();
         if (!userId) throw new Error('No user ID available');
@@ -114,7 +115,7 @@ class HealthDataService {
         );
     }
 
-    // Vaccination Record (Impfpass) - Fixed for empty dates
+    // Vaccination Record (Impfpass)
     async getVaccinations() {
         const userId = this.getCurrentUserId();
         if (!userId) throw new Error('No user ID available');
@@ -158,7 +159,7 @@ class HealthDataService {
         );
     }
 
-    // Medical Reports (Befunde) - Fixed for empty dates
+    // Medical Reports (Befunde)
     async getMedicalReports() {
         const userId = this.getCurrentUserId();
         if (!userId) throw new Error('No user ID available');
@@ -204,7 +205,7 @@ class HealthDataService {
         );
     }
 
-    // Medication (Medikation) - Already fixed
+    // Medication (Medikation)
     async getMedications() {
         const userId = this.getCurrentUserId();
         if (!userId) throw new Error('No user ID available');

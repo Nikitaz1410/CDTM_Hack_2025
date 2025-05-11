@@ -124,12 +124,31 @@ const authService = {
                 }
             }
 
-            // 5. Upload scanned documents to Python backend
+            // 5. Handle blood test data
+            if (onboardingData.bloodTests.manualData?.length > 0) {
+                for (const bloodTest of onboardingData.bloodTests.manualData) {
+                    try {
+                        // Create each parameter as a separate blood test entry
+                        for (const parameter of bloodTest.parameters) {
+                            await api.post(`/blood/user/${user.id}`, {
+                                date: bloodTest.date,
+                                metric: parameter.name,
+                                value: parameter.value
+                            });
+                        }
+                    } catch (error) {
+                        console.warn('Failed to save blood test:', error);
+                    }
+                }
+            }
+
+            // 6. Upload scanned documents to Python backend
             // Process all scanned documents from all sections
             const allDocuments = [
                 { data: onboardingData.medications.scannedDocument, type: 'medikation' },
                 { data: onboardingData.vaccinations.scannedDocument, type: 'impfpass' },
-                { data: onboardingData.medicalReports.scannedDocument, type: 'befund' }
+                { data: onboardingData.medicalReports.scannedDocument, type: 'befund' },
+                { data: onboardingData.bloodTests.scannedDocument, type: 'blutbild' }
             ].filter(doc => doc.data !== null);
 
             for (const document of allDocuments) {
