@@ -19,7 +19,8 @@ const PersonalInfoCard = ({ user, onEdit }) => {
         if (bmiNum < 18.5) return { status: 'Untergewicht', color: 'text-blue-600' };
         if (bmiNum < 25) return { status: 'Normalgewicht', color: 'text-green-600' };
         if (bmiNum < 30) return { status: 'Übergewicht', color: 'text-yellow-600' };
-        return { status: 'Adipositas', color: 'text-red-600' };
+        if (bmiNum < 10000) return { status: 'Adipositas', color: 'text-red-600' };
+        return { status: 'Golem', color: 'text-red-600' };
     };
 
     const bmi = calculateBMI();

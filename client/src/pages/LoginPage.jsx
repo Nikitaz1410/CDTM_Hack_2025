@@ -33,6 +33,12 @@ const LoginPage = ({ onLogin, onRegistration }) => {
                 const response = await authService.login(formData.username, formData.password);
                 onLogin(response.user);
             } else {
+                // ADD PASSWORD VALIDATION HERE
+                if (formData.password.length < 6) {
+                    setError('Password must be at least 6 characters long');
+                    setLoading(false);
+                    return;
+                }
                 // Registration - new users need onboarding
                 const response = await authService.register({
                     username: formData.username,
