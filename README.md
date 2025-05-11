@@ -11,7 +11,7 @@ No more rummaging through papers or PDFs. Doctors and patients can now:
 
     ✅ Automatically digitize medical records
 
-    🔍 Extract structured data using AI-powered OCR (GPT-4 Vision)
+    🔍 Extract structured data using AI-powered OCR (GPT-o4 Mini - SOTA Vision Model)
 
     📈 Visualize health trends interactively
 
