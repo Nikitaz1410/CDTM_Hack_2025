@@ -52,28 +52,12 @@ async def upload_document(
 
         schema, system_prompt, function = mapping(api_client)[document] # Use mapping(api_client) here
         analysis = image_model.run(schema, system_prompt, image_data)
-        print(analysis)
         function(userId, analysis)
-
-        # Generate unique filename
-        timestamp_str = datetime.now().strftime('%Y%m%d_%H%M%S')
-        # Sanitize original filename to prevent directory traversal or invalid characters
-        safe_original_filename = os.path.basename(image.filename or "unknown_file")
-        filename = f"{timestamp_str}_{safe_original_filename}"
-        filepath = os.path.join(UPLOAD_FOLDER, filename)
-
-        # Save the file
-        with open(filepath, 'wb') as f:
-            f.write(image_data)
 
         # Example response
         response_data = {
             'success': True,
-            'message': 'Document uploaded successfully',
-            'filename': filename,
-            'filepath': filepath,
-            'size': os.path.getsize(filepath),
-            'analysis': analysis  # Include analysis results
+            'message': 'Document uploaded successfully'
         }
 
         return JSONResponse(content=response_data, status_code=200)
