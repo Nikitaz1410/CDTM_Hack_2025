@@ -177,15 +177,16 @@ if __name__ == "__main__":
     # Test with sample data
     test_data = {
         "status": "success",
-        "impfpass": [
+        "impfungen": [
             {
-                "Impstoffname": "astraseneca",
-                "daily_intake": 20
+                "Impfstoffname": "astraseneca",
+                "Krankheit": "AIDS",
+                "Impfdatum": "24-07-2008"
             },
         ]
     }
 
-    result = client.save_report(1, test_data)
+    result = client.save_impfung(1, test_data)
     if result:
         print("Medication test saved successfully!")
         print(json.dumps(result, indent=2))
