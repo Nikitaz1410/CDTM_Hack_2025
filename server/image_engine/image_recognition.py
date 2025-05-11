@@ -23,7 +23,7 @@ class ImageAnalyzer:
     def run(self, schema, system_prompt, image):
         base64_image = self.encode_image(image)
         response = self.client.responses.parse(
-            model="o4-mini",
+            model="gpt-4.1",
             text_format=schema,
             input=[
                 {"role": "system", "content": system_prompt},
