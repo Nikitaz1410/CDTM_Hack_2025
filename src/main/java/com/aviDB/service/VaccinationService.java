@@ -29,7 +29,7 @@ public class VaccinationService {
     public List<Vaccination> getVaccinationsByUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
-        return vaccinationRepository.findByUser(user);
+        return vaccinationRepository.findByUserId(userId);
     }
 
     // Optional: Add a vaccination record to the database
