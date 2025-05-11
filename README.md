@@ -3,7 +3,7 @@
     One-liner 💬:
     Revolutionizing patient anamnesis and medical data management with AI-powered OCR — all your health insights in one secure, unified platform!
 
-If you want to test out our solution: https://avi-health.de/
+See our solution in action at https://www.youtube.com/watch?v=G7SVT1X2zEg or test it out yourself under https://avi-health.de/
 
 🚀 What is AVI Health?
 
