@@ -1,5 +1,5 @@
 // src/services/authService.js
-import api from '../config/api';
+import api, { pythonApi } from '../config/api';
 
 const authService = {
     // Login user
@@ -61,13 +61,13 @@ const authService = {
         return localStorage.getItem('authToken');
     },
 
-    // Save onboarding data to backend (Spring Boot only)
+    // Save onboarding data to backend
     async saveOnboardingData(onboardingData) {
         try {
             const user = this.getCurrentUser();
             if (!user) throw new Error('No user found');
 
-            // 1. Update user profile with personal information
+            // 1. Update user profile with personal information using the new endpoint
             try {
                 await api.put('/users/me/personal-info', {
                     first: onboardingData.personalInfo.first,
@@ -124,13 +124,35 @@ const authService = {
                 }
             }
 
-            // 5. Handle scanned documents (temporarily disabled)
-            // Since we're not using Python API, we'll skip document uploading for now
-            // You can implement this later when you add document upload to Spring Boot
-            if (onboardingData.medications.scannedDocument ||
-                onboardingData.vaccinations.scannedDocument ||
-                onboardingData.medicalReports.scannedDocument) {
-                console.warn('Document upload is temporarily disabled. Scanned documents were not uploaded.');
+            // 5. Upload scanned documents to Python backend
+            // Process all scanned documents from all sections
+            const allDocuments = [
+                { data: onboardingData.medications.scannedDocument, type: 'medikation' },
+                { data: onboardingData.vaccinations.scannedDocument, type: 'impfpass' },
+                { data: onboardingData.medicalReports.scannedDocument, type: 'befund' }
+            ].filter(doc => doc.data !== null);
+
+            for (const document of allDocuments) {
+                try {
+                    // Convert base64 to blob for FormData
+                    const response = await fetch(document.data.data);
+                    const blob = await response.blob();
+
+                    const formData = new FormData();
+                    formData.append('image', blob, document.data.name);
+                    formData.append('userId', user.id);
+                    formData.append('document', document.type);
+
+                    // Upload to Python backend for analysis (which will then save to database)
+                    await pythonApi.post('/upload-document', formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data',
+                        }
+                    });
+                } catch (error) {
+                    console.warn('Failed to upload document:', error);
+                    // Don't throw error, just continue without uploading this document
+                }
             }
 
             // Mark onboarding as complete

@@ -19,11 +19,11 @@ public class Report {
 
     // Link to User
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     @JsonIgnore  // Prevent serialization issues
     private User user;
 
-    @Column(nullable = false)
+    @Column()
     private String date;  // Date of the report
 
     @Column(columnDefinition = "LONGTEXT")

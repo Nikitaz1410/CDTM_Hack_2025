@@ -1,11 +1,12 @@
 // src/services/healthDataService.js
-import api from '../config/api';
+import api, { pythonApi } from '../config/api';
 import { sampleHealthData, sampleDocuments } from '../data/sampleData';
 import authService from './authService';
 
 class HealthDataService {
     constructor() {
         this.isServerConnected = true;
+        this.isPythonServerConnected = true;
     }
 
     // Get current user ID from auth service
@@ -30,7 +31,6 @@ class HealthDataService {
     }
 
     // Blood Test (Blutbild)
-    // Update the getBloodTests method in healthDataService.js
     async getBloodTests() {
         const userId = this.getCurrentUserId();
         if (!userId) throw new Error('No user ID available');
@@ -43,7 +43,21 @@ class HealthDataService {
             if (response.data && response.data.length > 0) {
                 // Group blood tests by date and transform them
                 const groupedTests = response.data.reduce((acc, blood) => {
-                    const date = blood.date || new Date().toISOString().split('T')[0];
+                    // Handle empty date strings by using today's date
+                    let date = blood.date;
+                    if (!date || date === "" || date === '""') {
+                        date = new Date().toISOString().split('T')[0];
+                    }
+
+                    // Ensure date is valid
+                    try {
+                        const testDate = new Date(date);
+                        if (isNaN(testDate.getTime())) {
+                            date = new Date().toISOString().split('T')[0];
+                        }
+                    } catch (e) {
+                        date = new Date().toISOString().split('T')[0];
+                    }
 
                     if (!acc[date]) {
                         acc[date] = {
@@ -63,8 +77,8 @@ class HealthDataService {
 
                 // Convert to array and sort by date
                 return Object.values(groupedTests).sort((a, b) => {
-                    const dateA = new Date(a.date || 0);
-                    const dateB = new Date(b.date || 0);
+                    const dateA = new Date(a.date);
+                    const dateB = new Date(b.date);
                     return dateB - dateA;
                 });
             } else {
@@ -131,7 +145,7 @@ class HealthDataService {
         );
     }
 
-    // Medication (Medikation) - Fixed to transform API data properly
+    // Medication (Medikation)
     async getMedications() {
         const userId = this.getCurrentUserId();
         if (!userId) throw new Error('No user ID available');
@@ -194,34 +208,52 @@ class HealthDataService {
         );
     }
 
-    // Document Management - using sample data for now
+    // Document Management - using Java backend
     async getDocuments() {
-        // For now, return sample documents since we don't have a Spring Boot endpoint yet
+        // This could be implemented to fetch from Java backend in the future
+        // For now, return sample documents
         return sampleDocuments;
     }
 
-    // Document upload - temporarily disabled
+    // Document upload - using Python backend for analysis
     async uploadDocument(formData) {
-        // TODO: Implement document upload with Spring Boot endpoint
-        // For now, return a mock response
-        console.warn('Document upload is disabled. Need to implement Spring Boot endpoint.');
-
-        await new Promise(resolve => setTimeout(resolve, 500));
-        return {
-            success: true,
-            message: 'Document upload temporarily disabled',
-            filename: formData.get('image')?.name || 'unknown.jpg',
-            size: formData.get('image')?.size || 0,
-            analysis: {
-                message: 'Feature temporarily disabled',
-                status: 'pending'
+        try {
+            // Ensure userId is included in the form data
+            const userId = this.getCurrentUserId();
+            if (!userId) {
+                throw new Error('No user ID available');
             }
-        };
+
+            // Update the userId in formData if it's not already set correctly
+            formData.set('userId', userId);
+
+            // Upload to Python backend for analysis
+            const response = await pythonApi.post('/upload-document', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                }
+            });
+
+            this.isPythonServerConnected = true;
+
+            // Return the response which includes analysis
+            return response.data;
+        } catch (error) {
+            console.warn('Document upload failed:', error.message);
+            this.isPythonServerConnected = false;
+
+            // Return error response
+            throw new Error(error.response?.data?.detail || 'Failed to upload document');
+        }
     }
 
     // Server connection status
     getServerStatus() {
         return this.isServerConnected;
+    }
+
+    getPythonServerStatus() {
+        return this.isPythonServerConnected;
     }
 
     // Check server connection - implementation matches api.js
@@ -232,6 +264,22 @@ class HealthDataService {
             return true;
         } catch (error) {
             this.isServerConnected = false;
+            return false;
+        }
+    }
+
+    // Check Python server connection
+    async checkPythonServerConnection() {
+        try {
+            // Try to hit Python server
+            const response = await pythonApi.get('/health').catch(() => {
+                // If no health endpoint, try a simple request
+                return pythonApi.get('/').catch(() => ({ status: 200 }));
+            });
+            this.isPythonServerConnected = response.status === 200;
+            return this.isPythonServerConnected;
+        } catch (error) {
+            this.isPythonServerConnected = false;
             return false;
         }
     }
