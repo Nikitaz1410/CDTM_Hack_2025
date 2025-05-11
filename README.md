@@ -3,6 +3,8 @@
     One-liner 💬:
     Revolutionizing patient anamnesis and medical data management with AI-powered OCR — all your health insights in one secure, unified platform!
 
+If you want to test out our solution: https://avi-health.de/
+
 🚀 What is AVI Health?
 
 AVI Health is a digital health platform that 📸 scans, 🧠 understands, and 📊 visualizes your medical documents — from blood tests and prescriptions to vaccination records and doctor’s notes — all using AI!
