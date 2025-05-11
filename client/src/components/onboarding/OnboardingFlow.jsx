@@ -1,4 +1,4 @@
-// src/components/onboarding/OnboardingFlow.jsx
+
 import React, { useState, useRef } from 'react';
 import {
   ChevronRight,
@@ -43,25 +43,33 @@ const OnboardingFlow = ({ onComplete }) => {
 
   const totalSteps = 6; // Welcome, Personal Info, Medications, Vaccinations, Medical Reports, Complete
 
-  const nextStep = async () => {
-    if (isSubmitting) return; // Prevent multiple clicks
-
+  const nextStep = () => {
+    // This function now only handles moving to the next step, not submission.
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
-    } else {
-      // Complete onboarding
-      setIsSubmitting(true);
-      try {
-        await onComplete(formData);
-      } finally {
-        setIsSubmitting(false);
-      }
     }
-};
+  };
 
   const prevStep = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleFinalSubmit = async () => {
+    if (isSubmitting) return; // Prevent multiple submissions
+    setIsSubmitting(true);
+    try {
+      await onComplete(formData);
+      // Optionally, you can navigate to a success screen or perform other actions here
+      // For example: setCurrentStep(currentStep + 1); // If you add a "Finished" step beyond totalSteps
+      // Or call another prop like onFlowSuccessfullyCompleted();
+    } catch (error) {
+      // The error should ideally be handled by onComplete, but you can add UI feedback here
+      console.error("Onboarding submission failed (UI level):", error);
+      // You might want to show an error message to the user
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -101,36 +109,64 @@ const OnboardingFlow = ({ onComplete }) => {
       case 4:
         return <MedicalReportsStep formData={formData} setFormData={setFormData} />;
       case 5:
-        return <CompleteStep formData={formData} />;
+        return <CompleteStep formData={formData} />; // This is the review step
       default:
         return null;
     }
   };
 
-  const renderButtons = () => (
+  const renderButtons = () => {
+    // On the final "CompleteStep" (review step)
+    if (currentStep === totalSteps - 1) {
+      return (
+        <div className="flex justify-between mt-8">
+          <button
+            onClick={prevStep}
+            className="flex items-center px-4 py-2 text-teal-600" // Always visible to go back
+          >
+            <ChevronLeft size={20} className="mr-1" />
+            Zurück
+          </button>
+          <button
+            onClick={handleFinalSubmit} // Dedicated submit handler
+            disabled={isSubmitting}
+            className="flex items-center px-8 py-2 bg-teal-500 text-white rounded-full disabled:opacity-50"
+          >
+            {isSubmitting ? 'Wird gespeichert...' : 'Onboarding abschließen'}
+          </button>
+        </div>
+      );
+    }
+
+    // For all other steps
+    return (
       <div className="flex justify-between mt-8">
         <button
             onClick={prevStep}
             className={`flex items-center px-4 py-2 text-teal-600 ${
-                currentStep === 0 ? 'invisible' : ''
+                currentStep === 0 ? 'invisible' : '' // Invisible on the first step
             }`}
         >
-          <ChevronLeft size={20} className="mr-1" />
-          Zurück
+          {/* Conditionally render content to ensure button is not shown if invisible logic is complex */}
+          {currentStep > 0 && (
+            <>
+              <ChevronLeft size={20} className="mr-1" />
+              Zurück
+            </>
+          )}
         </button>
 
         <button
-            onClick={nextStep}
-            disabled={isSubmitting}
-            className={`flex items-center px-6 py-2 bg-teal-500 text-white rounded-full disabled:opacity-50 ${
-                currentStep === totalSteps - 1 ? 'px-8' : ''
-            }`}
+            onClick={nextStep} // Calls the simplified nextStep
+            // isSubmitting is not strictly needed here anymore if nextStep is just navigation
+            className="flex items-center px-6 py-2 bg-teal-500 text-white rounded-full"
         >
-          {isSubmitting ? 'Wird gespeichert...' : currentStep === totalSteps - 1 ? 'Onboarding abschließen' : 'Weiter'}
-          {!isSubmitting && currentStep !== totalSteps - 1 && <ChevronRight size={20} className="ml-1"/>}
+          Weiter
+          <ChevronRight size={20} className="ml-1"/>
         </button>
       </div>
-  );
+    );
+  };
 
   return (
       <div className="max-w-md mx-auto h-screen bg-white overflow-y-auto">
@@ -143,7 +179,8 @@ const OnboardingFlow = ({ onComplete }) => {
   );
 };
 
-// Step Components
+//AHAHAHAHHAHAHAHA
+
 const WelcomeStep = () => (
     <div className="text-center pt-16">
       <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-teal-100 flex items-center justify-center">
@@ -174,6 +211,8 @@ const WelcomeStep = () => (
       </div>
     </div>
 );
+
+//AAAAAAAHAHAHAHAHAHAHAHAHAHHAHAHAHAHHAHAHAHAHAHAHHA
 
 const PersonalInfoStep = ({ formData, updateFormData }) => (
     <div>

@@ -132,6 +132,7 @@ const authService = {
                 { data: onboardingData.medicalReports.scannedDocument, type: 'befund' }
             ].filter(doc => doc.data !== null);
 
+            //TODO This is the problematic code, should be brought to other button
             for (const document of allDocuments) {
                 try {
                     // Convert base64 to blob for FormData
