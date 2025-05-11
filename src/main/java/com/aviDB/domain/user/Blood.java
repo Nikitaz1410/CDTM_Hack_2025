@@ -3,11 +3,14 @@ package com.aviDB.domain.user;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "blood")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})  // This prevents the serialization error
 public class Blood {
 
     @Id
@@ -16,15 +19,16 @@ public class Blood {
 
     // Link to User
     @ManyToOne(fetch = FetchType.LAZY)
-    //@JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)  // Uncommented the JoinColumn
+    @JsonIgnore  // This prevents circular reference and serialization issues
     private User user;
 
-    //@Column(name = "test_date", nullable = false)
+    @Column(name = "test_date", nullable = false)  // Uncommented the column annotation
     private String date;
 
-    //@Column(nullable = false)
+    @Column(nullable = false)  // Uncommented the column annotation
     private String metric;
 
-    //@Column(nullable = false)
+    @Column(nullable = false)  // Uncommented the column annotation
     private Double value;
 }

@@ -30,7 +30,7 @@ AVIApplication {
         public void printBanner(Environment environment, Class<?> sourceClass, PrintStream out) {
             if (!artDisplayed) {
                 out.println("""
-                      AVI Health by Luca, Nikita, Sebastian and Daniel                           
+                      AVI Health by Luca, Nikita, Sebastian                  
                 """);
                 artDisplayed = true;
             }

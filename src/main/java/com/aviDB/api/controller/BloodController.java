@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -20,7 +21,7 @@ public class BloodController {
     private BloodService bloodTestService;
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Blood>> getTestsForUser(@PathVariable Long userId) {
+    public ResponseEntity<?> getTestsForUser(@PathVariable Long userId) {
         return ResponseEntity.ok(bloodTestService.getBloodsByUser(userId));
     }
 

@@ -1,10 +1,42 @@
-// src/pages/detail/BloodTestsDetail.jsx
+// src/pages/detail/BloodTestDetail.jsx
 import React, { useState } from 'react';
 import { ArrowLeft, Plus, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const BloodTestsDetail = ({ onBack, data = [] }) => {
     const [selectedParameter, setSelectedParameter] = useState(null);
+
+    // Helper function to safely parse dates with fallback
+    const safeDate = (dateString) => {
+        if (!dateString) return null;
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return null;
+            return date;
+        } catch {
+            return null;
+        }
+    };
+
+    // Format date for display with fallback
+    const formatDate = (dateString, format = 'short') => {
+        const date = safeDate(dateString);
+        if (!date) return 'Datum unbekannt';
+
+        if (format === 'short') {
+            return date.toLocaleDateString('de-DE', {
+                month: 'short',
+                day: 'numeric'
+            });
+        } else {
+            return date.toLocaleDateString('de-DE', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+    };
 
     // Transform data for chart
     const getChartData = (parameter) => {
@@ -13,11 +45,12 @@ const BloodTestsDetail = ({ onBack, data = [] }) => {
         return data
             .filter(test => test.parameters?.some(p => p.name === parameter))
             .map(test => ({
-                date: new Date(test.date).toLocaleDateString('de-DE', { month: 'short', day: 'numeric' }),
+                date: formatDate(test.date, 'short'),
                 value: test.parameters.find(p => p.name === parameter)?.value || 0,
-                fullDate: test.date
+                fullDate: test.date,
+                sortDate: safeDate(test.date) || new Date(0)
             }))
-            .sort((a, b) => new Date(a.fullDate) - new Date(b.fullDate));
+            .sort((a, b) => a.sortDate - b.sortDate);
     };
 
     // Get all unique parameters from all blood tests
@@ -34,7 +67,15 @@ const BloodTestsDetail = ({ onBack, data = [] }) => {
     // Get the latest test results
     const getLatestTest = () => {
         if (!data.length) return null;
-        return data.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+        // Sort by date, handling invalid dates
+        const sorted = [...data].sort((a, b) => {
+            const dateA = safeDate(a.date) || new Date(0);
+            const dateB = safeDate(b.date) || new Date(0);
+            return dateB - dateA;
+        });
+
+        return sorted[0];
     };
 
     const latestTest = getLatestTest();
@@ -76,7 +117,7 @@ const BloodTestsDetail = ({ onBack, data = [] }) => {
                 )}
 
                 {/* Trend Chart */}
-                {selectedParameter && (
+                {selectedParameter && getChartData(selectedParameter).length > 0 && (
                     <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
                         <h3 className="text-lg font-medium mb-3">{selectedParameter} Verlauf</h3>
                         <div className="h-48">
@@ -106,8 +147,8 @@ const BloodTestsDetail = ({ onBack, data = [] }) => {
                         <h3 className="text-lg font-semibold mb-3">
                             Aktuellste Ergebnisse
                             <span className="text-sm font-normal text-gray-500 ml-2">
-                ({new Date(latestTest.date).toLocaleDateString('de-DE')})
-              </span>
+                                ({formatDate(latestTest.date)})
+                            </span>
                         </h3>
                         <div className="bg-white rounded-lg shadow-sm p-4">
                             <div className="space-y-3">
@@ -131,43 +172,52 @@ const BloodTestsDetail = ({ onBack, data = [] }) => {
                 {/* All Tests History */}
                 <h3 className="text-lg font-semibold mb-3">Verlauf</h3>
                 <div className="space-y-2">
-                    {data.sort((a, b) => new Date(b.date) - new Date(a.date)).map((test, index) => (
-                        <div key={index} className="bg-white rounded-lg shadow-sm p-4">
-                            <div className="flex justify-between items-start mb-2">
-                                <div>
-                                    <h4 className="font-medium">
-                                        {new Date(test.date).toLocaleDateString('de-DE', {
-                                            weekday: 'long',
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric'
-                                        })}
-                                    </h4>
-                                    <span className={`text-xs px-2 py-1 rounded-full mt-1 inline-block ${
-                                        test.status === 'normal' ? 'bg-green-100 text-green-700' :
-                                            test.status === 'warning' ? 'bg-yellow-100 text-yellow-700' :
-                                                'bg-red-100 text-red-700'
-                                    }`}>
-                    {test.status}
-                  </span>
+                    {data
+                        .map(test => ({
+                            ...test,
+                            sortDate: safeDate(test.date) || new Date(0)
+                        }))
+                        .sort((a, b) => b.sortDate - a.sortDate)
+                        .map((test, index) => (
+                            <div key={index} className="bg-white rounded-lg shadow-sm p-4">
+                                <div className="flex justify-between items-start mb-2">
+                                    <div>
+                                        <h4 className="font-medium">
+                                            {formatDate(test.date, 'long')}
+                                        </h4>
+                                        <span className={`text-xs px-2 py-1 rounded-full mt-1 inline-block ${
+                                            test.status === 'normal' ? 'bg-green-100 text-green-700' :
+                                                test.status === 'warning' ? 'bg-yellow-100 text-yellow-700' :
+                                                    'bg-red-100 text-red-700'
+                                        }`}>
+                                            {test.status || 'Standard'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 mt-3">
+                                    {test.parameters?.slice(0, 4).map((param, i) => (
+                                        <div key={i} className="text-sm">
+                                            <span className="text-gray-500">{param.name}:</span>
+                                            <span className="font-medium ml-2">{param.value}</span>
+                                        </div>
+                                    ))}
+                                    {test.parameters?.length > 4 && (
+                                        <div className="text-sm text-gray-500 col-span-2">
+                                            +{test.parameters.length - 4} weitere Parameter
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-2 mt-3">
-                                {test.parameters?.slice(0, 4).map((param, i) => (
-                                    <div key={i} className="text-sm">
-                                        <span className="text-gray-500">{param.name}:</span>
-                                        <span className="font-medium ml-2">{param.value}</span>
-                                    </div>
-                                ))}
-                                {test.parameters?.length > 4 && (
-                                    <div className="text-sm text-gray-500 col-span-2">
-                                        +{test.parameters.length - 4} weitere Parameter
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    ))}
+                        ))}
                 </div>
+
+                {/* Empty state */}
+                {data.length === 0 && (
+                    <div className="text-center text-gray-500 py-8">
+                        <AlertCircle size={48} className="mx-auto mb-4 text-gray-300" />
+                        <p>Noch keine Blutbilder verfügbar</p>
+                    </div>
+                )}
             </div>
         </div>
     );
