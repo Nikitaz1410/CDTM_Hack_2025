@@ -7,5 +7,4 @@ def mapping(cl):
         "impfpass": (Impfpass, impfpass_prompt, cl.save_impfung),
         "befund": (Befund, befund_prompt, cl.save_report),
         "medikation": (Medikation, medikation_prompt, cl.save_medication),
-        "other": (Befund, other_prompt)
     }
