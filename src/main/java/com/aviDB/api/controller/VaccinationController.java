@@ -1,6 +1,7 @@
 package com.aviDB.api.controller;
 
 import com.aviDB.domain.user.Vaccination;
+import com.aviDB.service.UserService;
 import com.aviDB.service.VaccinationService;
 
 import jakarta.validation.Valid;
@@ -17,6 +18,9 @@ public class VaccinationController {
     @Autowired
     private VaccinationService vaccinationService;
 
+    @Autowired
+    private UserService userService;
+
     // Get all vaccinations for a specific user
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Vaccination>> getVaccinationsForUser(@PathVariable Long userId) {
@@ -30,6 +34,7 @@ public class VaccinationController {
             @PathVariable Long userId,
             @Valid @RequestBody Vaccination vaccination
     ) {
+        vaccination.setUser(userService.getUserById(userId));
         Vaccination createdVaccination = vaccinationService.addVaccination(vaccination);
         return ResponseEntity.ok(createdVaccination);
     }
@@ -40,6 +45,7 @@ public class VaccinationController {
             @PathVariable Long vaccinationId,
             @Valid @RequestBody Vaccination vaccination
     ) {
+        vaccination.setId(vaccinationId);
         Vaccination updatedVaccination = vaccinationService.updateVaccination(vaccination);
         return ResponseEntity.ok(updatedVaccination);
     }
