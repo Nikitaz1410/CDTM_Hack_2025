@@ -1,4 +1,4 @@
-// src/main/java/com/pokerapp/config/SecurityConfig.java
+// src/main/java/com/aviDB/config/SecurityConfig.java
 package com.aviDB.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,6 +78,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/games/**").authenticated()
                         .requestMatchers("/api/players/**").authenticated()
                         .requestMatchers("/api/friends/**").authenticated()
+                        .requestMatchers("/api/blood/**").authenticated()
+                        .requestMatchers("/api/meds/**").authenticated()
+                        .requestMatchers("/api/vaccinations/**").authenticated()
+                        .requestMatchers("/api/reports/**").authenticated()
 
                         // Default policy: require authentication
                         .anyRequest().permitAll()

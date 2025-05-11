@@ -6,7 +6,6 @@ import authService from './authService';
 class HealthDataService {
     constructor() {
         this.isServerConnected = true;
-        this.checkServerConnection();
     }
 
     // Get current user ID from auth service
@@ -15,27 +14,15 @@ class HealthDataService {
         return user ? user.id : null;
     }
 
-    // Check server connection for Java backend
-    async checkServerConnection() {
-        try {
-            await api.get('/health'); // Assume there's a health check endpoint
-            this.isServerConnected = true;
-        } catch (error) {
-            this.isServerConnected = false;
-        }
-        return this.isServerConnected;
-    }
-
     // Helper method to use sample data when server is down
     async withFallback(apiCall, sampleData) {
         try {
-            if (!this.isServerConnected) {
-                throw new Error('Server not connected');
-            }
             const response = await apiCall();
+            this.isServerConnected = true;
             return response.data;
         } catch (error) {
             console.warn('Using sample data:', error.message);
+            this.isServerConnected = false;
             // Simulate API delay for demo purposes
             await new Promise(resolve => setTimeout(resolve, 500));
             return sampleData;
