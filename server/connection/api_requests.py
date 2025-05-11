@@ -34,10 +34,10 @@ class JavaAPIClient:
 
             # Check response
             if response.status_code == 200:
-                print(f"✓ Medication saved successfully for user {user_id}")
+                print(f"✓ Report saved successfully for user {user_id}")
                 return response.json()
             else:
-                print(f"✗ Failed to save blood test: {response.status_code}")
+                print(f"✗ Failed to save Report: {response.status_code}")
                 print(f"  Response: {response.text}")
                 return None
 
@@ -53,31 +53,32 @@ class JavaAPIClient:
 
     def save_impfung(self, user_id: int, data) -> Optional[Dict]:
         for impfung in data['impfungen']:
-            try:
-                impf_data = {
-                    "name": impfung['Impfstoffname'],
-                    "disease": impfung['Krankheit'],
-                    "date": impfung['Impfdatum']
-                }
+            for krankheit in impfung['Krankheit']:
+                try:
+                    impf_data = {
+                        "name": impfung['Impfstoffname'],
+                        "disease": krankheit,
+                        "date": impfung['Impfdatum']
+                    }
 
-                url = f"{self.base_url}/api/vaccinations/user/{user_id}"
-                response = self.session.post(url, json=impf_data)
+                    url = f"{self.base_url}/api/vaccinations/user/{user_id}"
+                    response = self.session.post(url, json=impf_data)
 
-                # Check response
-                if response.status_code == 200:
-                    print(f"✓ Medication saved successfully for user {user_id}")
-                    return response.json()
-                else:
-                    print(f"✗ Failed to save blood test: {response.status_code}")
-                    print(f"  Response: {response.text}")
+                    # Check response
+                    if response.status_code == 200:
+                        print(f"✓ Impfung saved successfully for user {user_id}")
+                        return response.json()
+                    else:
+                        print(f"✗ Failed to save Impfung: {response.status_code}")
+                        print(f"  Response: {response.text}")
+                        return None
+                except requests.exceptions.RequestException as e:
+                    print(f"✗ Error calling Java API: {e}")
                     return None
-            except requests.exceptions.RequestException as e:
-                print(f"✗ Error calling Java API: {e}")
-                return None
 
-            except Exception as e:
-                print(f"✗ Unexpected error: {e}")
-                return None
+                except Exception as e:
+                    print(f"✗ Unexpected error: {e}")
+                    return None
 
 
 
