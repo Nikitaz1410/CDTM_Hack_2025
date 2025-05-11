@@ -1,5 +1,6 @@
 // src/services/healthDataService.js
 import api, { pythonApi } from '../config/api';
+import { sampleHealthData, sampleDocuments } from "../data/sampleData";
 import authService from './authService';
 
 class HealthDataService {
