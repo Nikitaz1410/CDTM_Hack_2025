@@ -67,13 +67,17 @@ const authService = {
             const user = this.getCurrentUser();
             if (!user) throw new Error('No user found');
 
-            // 1. Update user profile with personal information
+            // 1. Update user profile with personal information using the new endpoint
             try {
-                await api.put('/users/me', {
-                    ...onboardingData.personalInfo
+                await api.put('/users/me/personal-info', {
+                    first: onboardingData.personalInfo.first,
+                    last: onboardingData.personalInfo.last,
+                    weight: onboardingData.personalInfo.weight,
+                    height: onboardingData.personalInfo.height
                 });
             } catch (error) {
                 console.warn('Failed to update personal info:', error);
+                throw error; // Re-throw to stop the onboarding process if this fails
             }
 
             // 2. Save medications
@@ -123,28 +127,21 @@ const authService = {
             // 5. Upload scanned documents to Python backend
             // Process all scanned documents from all sections
             const allDocuments = [
-                onboardingData.medications.scannedDocument,
-                onboardingData.vaccinations.scannedDocument,
-                onboardingData.medicalReports.scannedDocument
-            ].filter(doc => doc !== null);
+                { data: onboardingData.medications.scannedDocument, type: 'medikation' },
+                { data: onboardingData.vaccinations.scannedDocument, type: 'impfpass' },
+                { data: onboardingData.medicalReports.scannedDocument, type: 'befund' }
+            ].filter(doc => doc.data !== null);
 
             for (const document of allDocuments) {
                 try {
                     // Convert base64 to blob for FormData
-                    const response = await fetch(document.data);
+                    const response = await fetch(document.data.data);
                     const blob = await response.blob();
 
                     const formData = new FormData();
-                    formData.append('image', blob, document.name);
+                    formData.append('image', blob, document.data.name);
                     formData.append('userId', user.id);
-
-                    // Determine document type based on section
-                    let documentType = 'other';
-                    if (onboardingData.medications.scannedDocument === document) documentType = 'medikation';
-                    if (onboardingData.vaccinations.scannedDocument === document) documentType = 'impfpass';
-                    if (onboardingData.medicalReports.scannedDocument === document) documentType = 'befund';
-
-                    formData.append('document', documentType);
+                    formData.append('document', document.type);
 
                     // Upload to Python backend for analysis (which will then save to database)
                     await pythonApi.post('/upload-document', formData, {

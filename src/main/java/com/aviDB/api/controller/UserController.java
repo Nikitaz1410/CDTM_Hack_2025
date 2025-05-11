@@ -68,6 +68,15 @@ public class UserController {
         return ResponseEntity.ok(userDto);
     }
 
+    // New endpoint for updating personal information (used during onboarding)
+    @PutMapping("/me/personal-info")
+    public ResponseEntity<UserDto> updateCurrentUserPersonalInfo(@Valid @RequestBody UpdatePersonalInfoDto updatePersonalInfoDto) {
+        User currentUser = userService.getCurrentUser();
+        User updatedUser = userService.updatePersonalInfo(currentUser.getId(), updatePersonalInfoDto);
+        UserDto userDto = convertToDto(updatedUser);
+        return ResponseEntity.ok(userDto);
+    }
+
     @PutMapping("/me/password")
     public ResponseEntity<UserDto> updateCurrentUserPassword(@Valid @RequestBody UpdatePasswordDto updatePasswordDto) {
         User currentUser = userService.getCurrentUser();
@@ -90,6 +99,12 @@ public class UserController {
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
         dto.setIsAdmin(user.isAdmin());
+
+        // Include personal info in the DTO if available
+        if (user.getFirst() != null) {
+            // You might want to add these fields to UserDto
+        }
+
         return dto;
     }
 }

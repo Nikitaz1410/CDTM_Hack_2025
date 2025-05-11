@@ -4,6 +4,7 @@ import com.aviDB.api.dto.request.user.LoginDto;
 import com.aviDB.api.dto.request.user.RegisterDto;
 import com.aviDB.api.dto.request.user.UpdatePasswordDto;
 import com.aviDB.api.dto.request.user.UpdateUserDto;
+import com.aviDB.api.dto.request.user.UpdatePersonalInfoDto;
 
 import com.aviDB.domain.user.User;
 import com.aviDB.exception.NotFoundException;
@@ -95,7 +96,6 @@ public class UserService {
     }
 
 
-
     @Transactional
     public User updateUser(Long userId, UpdateUserDto updateUserDto) {
         User user = getUserById(userId);
@@ -114,6 +114,18 @@ public class UserService {
 
         user.setUsername(updateUserDto.getEmail());
         user.setEmail(updateUserDto.getEmail());
+
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public User updatePersonalInfo(Long userId, UpdatePersonalInfoDto updatePersonalInfoDto) {
+        User user = getUserById(userId);
+
+        user.setFirst(updatePersonalInfoDto.getFirst());
+        user.setLast(updatePersonalInfoDto.getLast());
+        user.setWeight(updatePersonalInfoDto.getWeight());
+        user.setHeight(updatePersonalInfoDto.getHeight());
 
         return userRepository.save(user);
     }
