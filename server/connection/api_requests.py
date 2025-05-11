@@ -21,6 +21,36 @@ class JavaAPIClient:
         import urllib3
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+    def save_report(self, user_id: int, data) -> Optional[Dict]:
+        try:
+            report_data = {
+                "date": data['date'],
+                "summary": data['summary'],
+                "text": data['full_text'],
+            }
+
+            url = f"{self.base_url}/api/reports/user/{user_id}"
+            response = self.session.post(url, json=report_data)
+
+            # Check response
+            if response.status_code == 200:
+                print(f"✓ Medication saved successfully for user {user_id}")
+                return response.json()
+            else:
+                print(f"✗ Failed to save blood test: {response.status_code}")
+                print(f"  Response: {response.text}")
+                return None
+
+        except requests.exceptions.RequestException as e:
+            print(f"✗ Error calling Java API: {e}")
+            return None
+
+        except Exception as e:
+            print(f"✗ Unexpected error: {e}")
+            return None
+
+
+
     def save_impfung(self, user_id: int, data) -> Optional[Dict]:
         for impfung in data['impfungen']:
             try:
@@ -56,7 +86,7 @@ class JavaAPIClient:
             try:
                 medi_data = {
                     "name": medi.get("name"),
-                    "daily_intake": medi.get("daily_intake")
+                    "dailyIntake": medi.get("daily_intake")
                 }
 
                 url = f"{self.base_url}/api/meds/user/{user_id}"
@@ -147,16 +177,15 @@ if __name__ == "__main__":
     # Test with sample data
     test_data = {
         "status": "success",
-        "date": "2025-05-10",
-        "medikamente": [
+        "impfpass": [
             {
-                "name": "testo",
-                "dailyIntake": 20
+                "Impstoffname": "astraseneca",
+                "daily_intake": 20
             },
         ]
     }
 
-    result = client.save_medication(1, test_data)
+    result = client.save_report(1, test_data)
     if result:
         print("Medication test saved successfully!")
         print(json.dumps(result, indent=2))

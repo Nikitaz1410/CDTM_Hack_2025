@@ -34,8 +34,8 @@ impfpass_prompt = general_prompt + """
 befund_prompt = general_prompt + """
     If the picture we send is not a doctor report in written form give status: error then we reject the scan.
     Else put status: success
-    summary should contain a 2-sentence summary of the whole report,
-    each paragraph should be modeled individually with a caption and the full written text
+    summary should contain a 2-3 sentence summary of the whole report,
+    full_text should just be the ocr of the document
 """
 
 ### -------------- ###

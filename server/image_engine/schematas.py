@@ -37,7 +37,7 @@ class Befund(BaseModel):
     status: str
     date: str
     summary: str
-    paragraphs: list[Paragraph]
+    full_text: str
 
 ### -- Medikation -- ###
 
