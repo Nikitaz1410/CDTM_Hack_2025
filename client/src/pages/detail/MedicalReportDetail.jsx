@@ -6,6 +6,34 @@ const MedicalReportsDetail = ({ onBack, data = [] }) => {
     const [expandedReport, setExpandedReport] = useState(null);
     const [expandedParagraphs, setExpandedParagraphs] = useState({});
 
+    // Helper function to safely parse dates with fallback
+    const safeDate = (dateString) => {
+        if (!dateString || dateString === "" || dateString === '""') return new Date();
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return new Date();
+            return date;
+        } catch {
+            return new Date();
+        }
+    };
+
+    // Format date for display with fallback
+    const formatDate = (dateString, format = 'short') => {
+        const date = safeDate(dateString);
+
+        if (format === 'short') {
+            return date.toLocaleDateString('de-DE');
+        } else {
+            return date.toLocaleDateString('de-DE', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+    };
+
     // Toggle paragraph expansion
     const toggleParagraph = (reportIndex, paragraphIndex) => {
         const key = `${reportIndex}-${paragraphIndex}`;
@@ -30,7 +58,7 @@ const MedicalReportsDetail = ({ onBack, data = [] }) => {
     };
 
     // Sort reports by date (newest first)
-    const sortedReports = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
+    const sortedReports = [...data].sort((a, b) => safeDate(b.date) - safeDate(a.date));
 
     return (
         <div className="h-full flex flex-col">
@@ -81,14 +109,14 @@ const MedicalReportsDetail = ({ onBack, data = [] }) => {
                                     <div>
                                         <div className="flex items-center gap-2">
                                             <h4 className="font-medium">
-                                                Befund vom {new Date(report.date).toLocaleDateString('de-DE')}
+                                                Befund vom {formatDate(report.date)}
                                             </h4>
-                                            <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(report.status)}`}>
-                        {report.status}
-                      </span>
+                                            <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(report.status || 'normal')}`}>
+                                                {report.status || 'normal'}
+                                            </span>
                                         </div>
                                         <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                                            {report.summary}
+                                            {report.summary || 'Keine Zusammenfassung verfügbar'}
                                         </p>
                                     </div>
                                 </div>
@@ -105,7 +133,7 @@ const MedicalReportsDetail = ({ onBack, data = [] }) => {
                                             <Info size={16} className="mr-2 text-gray-400" />
                                             Zusammenfassung
                                         </h5>
-                                        <p className="text-gray-700">{report.summary}</p>
+                                        <p className="text-gray-700">{report.summary || 'Keine Zusammenfassung verfügbar'}</p>
                                     </div>
 
                                     {/* Paragraphs */}
@@ -115,7 +143,7 @@ const MedicalReportsDetail = ({ onBack, data = [] }) => {
                                                 onClick={() => toggleParagraph(reportIndex, paragraphIndex)}
                                                 className="w-full p-4 text-left hover:bg-gray-50 flex justify-between items-center"
                                             >
-                                                <h5 className="font-medium">{paragraph.caption}</h5>
+                                                <h5 className="font-medium">{paragraph.caption || 'Details'}</h5>
                                                 <div className="text-gray-400">
                                                     {expandedParagraphs[`${reportIndex}-${paragraphIndex}`]
                                                         ? <ChevronUp size={16} />
@@ -125,16 +153,32 @@ const MedicalReportsDetail = ({ onBack, data = [] }) => {
 
                                             {expandedParagraphs[`${reportIndex}-${paragraphIndex}`] && (
                                                 <div className="px-4 pb-4 text-gray-700 whitespace-pre-wrap">
-                                                    {paragraph.full_text}
+                                                    {paragraph.full_text || 'Kein Text verfügbar'}
                                                 </div>
                                             )}
                                         </div>
                                     ))}
+
+                                    {/* If no paragraphs but text exists */}
+                                    {(!report.paragraphs || report.paragraphs.length === 0) && report.text && (
+                                        <div className="p-4 border-t border-gray-100">
+                                            <h5 className="font-medium mb-2">Volltext</h5>
+                                            <p className="text-gray-700 whitespace-pre-wrap">{report.text}</p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
                     ))}
                 </div>
+
+                {/* Empty state */}
+                {data.length === 0 && (
+                    <div className="text-center text-gray-500 py-8">
+                        <FileText size={48} className="mx-auto mb-4 text-gray-300" />
+                        <p>Noch keine Befunde verfügbar</p>
+                    </div>
+                )}
             </div>
         </div>
     );

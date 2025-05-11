@@ -30,7 +30,31 @@ class HealthDataService {
         }
     }
 
-    // Blood Test (Blutbild)
+    // Helper function to safely parse dates with fallback
+    safeDate(dateString) {
+        if (!dateString || dateString === "" || dateString === '""') return null;
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return null;
+            return date;
+        } catch {
+            return null;
+        }
+    }
+
+    // Helper function to format dates with fallback
+    formatDate(dateString, fallback = new Date().toISOString().split('T')[0]) {
+        if (!dateString || dateString === "" || dateString === '""') {
+            return fallback;
+        }
+
+        const date = this.safeDate(dateString);
+        if (!date) return fallback;
+
+        return date.toISOString().split('T')[0];
+    }
+
+    // Blood Test (Blutbild) - Already fixed
     async getBloodTests() {
         const userId = this.getCurrentUserId();
         if (!userId) throw new Error('No user ID available');
@@ -44,20 +68,7 @@ class HealthDataService {
                 // Group blood tests by date and transform them
                 const groupedTests = response.data.reduce((acc, blood) => {
                     // Handle empty date strings by using today's date
-                    let date = blood.date;
-                    if (!date || date === "" || date === '""') {
-                        date = new Date().toISOString().split('T')[0];
-                    }
-
-                    // Ensure date is valid
-                    try {
-                        const testDate = new Date(date);
-                        if (isNaN(testDate.getTime())) {
-                            date = new Date().toISOString().split('T')[0];
-                        }
-                    } catch (e) {
-                        date = new Date().toISOString().split('T')[0];
-                    }
+                    const date = this.formatDate(blood.date);
 
                     if (!acc[date]) {
                         acc[date] = {
@@ -103,15 +114,38 @@ class HealthDataService {
         );
     }
 
-    // Vaccination Record (Impfpass)
+    // Vaccination Record (Impfpass) - Fixed for empty dates
     async getVaccinations() {
         const userId = this.getCurrentUserId();
         if (!userId) throw new Error('No user ID available');
 
-        return this.withFallback(
-            () => api.get(`/vaccinations/user/${userId}`),
-            sampleHealthData.vaccinations
-        );
+        try {
+            const response = await api.get(`/vaccinations/user/${userId}`);
+            this.isServerConnected = true;
+
+            // Transform the data to match the expected format
+            if (response.data && response.data.length > 0) {
+                // Group vaccinations by status/record
+                const vaccinations = [{
+                    status: 'complete',
+                    impfungen: response.data.map(vaccination => ({
+                        Impfstoffname: vaccination.name,
+                        Krankheit: [vaccination.disease],
+                        Impfdatum: this.formatDate(vaccination.date)
+                    }))
+                }];
+
+                return vaccinations;
+            } else {
+                // Return empty vaccinations in expected format
+                return [];
+            }
+        } catch (error) {
+            console.warn('Using sample data for vaccinations:', error.message);
+            this.isServerConnected = false;
+            await new Promise(resolve => setTimeout(resolve, 500));
+            return sampleHealthData.vaccinations;
+        }
     }
 
     async addVaccination(vaccination) {
@@ -124,15 +158,40 @@ class HealthDataService {
         );
     }
 
-    // Medical Reports (Befunde)
+    // Medical Reports (Befunde) - Fixed for empty dates
     async getMedicalReports() {
         const userId = this.getCurrentUserId();
         if (!userId) throw new Error('No user ID available');
 
-        return this.withFallback(
-            () => api.get(`/reports/user/${userId}`),
-            sampleHealthData.medicalReports
-        );
+        try {
+            const response = await api.get(`/reports/user/${userId}`);
+            this.isServerConnected = true;
+
+            // Transform the data to match the expected format
+            if (response.data && response.data.length > 0) {
+                const reports = response.data.map(report => ({
+                    status: 'normal',  // or determine based on content
+                    date: this.formatDate(report.date),
+                    summary: report.summary || 'Kein Zusammenfassung verfügbar',
+                    paragraphs: [
+                        {
+                            caption: 'Befund',
+                            full_text: report.text || report.summary || 'Kein Text verfügbar'
+                        }
+                    ]
+                }));
+
+                return reports;
+            } else {
+                // Return empty reports in expected format
+                return [];
+            }
+        } catch (error) {
+            console.warn('Using sample data for medical reports:', error.message);
+            this.isServerConnected = false;
+            await new Promise(resolve => setTimeout(resolve, 500));
+            return sampleHealthData.medicalReports;
+        }
     }
 
     async addMedicalReport(report) {
@@ -145,7 +204,7 @@ class HealthDataService {
         );
     }
 
-    // Medication (Medikation)
+    // Medication (Medikation) - Already fixed
     async getMedications() {
         const userId = this.getCurrentUserId();
         if (!userId) throw new Error('No user ID available');
@@ -256,7 +315,7 @@ class HealthDataService {
         return this.isPythonServerConnected;
     }
 
-    // Check server connection - implementation matches api.js
+    // Check server connection
     async checkServerConnection() {
         try {
             await api.get('/users/me');

@@ -5,15 +5,35 @@ import { ArrowLeft, Plus, CheckCircle, AlertTriangle, Calendar } from 'lucide-re
 const VaccinationsDetail = ({ onBack, data = [] }) => {
     const [expandedCard, setExpandedCard] = useState(null);
 
+    // Helper function to safely parse dates with fallback
+    const safeDate = (dateString) => {
+        if (!dateString || dateString === "" || dateString === '""') return new Date();
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return new Date();
+            return date;
+        } catch {
+            return new Date();
+        }
+    };
+
+    // Format date for display with fallback
+    const formatDate = (dateString) => {
+        const date = safeDate(dateString);
+        return date.toLocaleDateString('de-DE');
+    };
+
     // Get all vaccinations from all records
     const getAllVaccinations = () => {
         return data.flatMap(record =>
             record.impfungen?.map(impfung => ({
                 ...impfung,
                 recordStatus: record.status,
-                recordDate: record.date || new Date().toISOString()
+                recordDate: record.date || new Date().toISOString(),
+                // Ensure date is valid
+                Impfdatum: impfung.Impfdatum || new Date().toISOString().split('T')[0]
             })) || []
-        ).sort((a, b) => new Date(b.Impfdatum) - new Date(a.Impfdatum));
+        ).sort((a, b) => safeDate(b.Impfdatum) - safeDate(a.Impfdatum));
     };
 
     const allVaccinations = getAllVaccinations();
@@ -22,7 +42,12 @@ const VaccinationsDetail = ({ onBack, data = [] }) => {
     const getVaccinationsByDisease = () => {
         const groupedVaccinations = {};
         allVaccinations.forEach(vaccination => {
-            vaccination.Krankheit?.forEach(disease => {
+            // Ensure Krankheit is an array
+            const diseases = Array.isArray(vaccination.Krankheit)
+                ? vaccination.Krankheit
+                : [vaccination.Krankheit].filter(Boolean);
+
+            diseases.forEach(disease => {
                 if (!groupedVaccinations[disease]) {
                     groupedVaccinations[disease] = [];
                 }
@@ -59,7 +84,7 @@ const VaccinationsDetail = ({ onBack, data = [] }) => {
                     </div>
                     <div className="bg-white rounded-lg shadow-sm p-4 text-center">
                         <div className="text-2xl font-bold text-purple-600">
-                            {allVaccinations.length > 0 ? new Date().getFullYear() - new Date(allVaccinations[0].Impfdatum).getFullYear() : 0}
+                            {allVaccinations.length > 0 ? new Date().getFullYear() - safeDate(allVaccinations[0]?.Impfdatum).getFullYear() : 0}
                         </div>
                         <div className="text-sm text-gray-600">Jahre aktiv</div>
                     </div>
@@ -79,7 +104,7 @@ const VaccinationsDetail = ({ onBack, data = [] }) => {
                                         <CheckCircle size={18} />
                                     </div>
                                     <div>
-                                        <h4 className="font-medium">{disease}</h4>
+                                        <h4 className="font-medium">{disease || 'Unbekannt'}</h4>
                                         <p className="text-sm text-gray-500">{vaccinations.length} Impfungen</p>
                                     </div>
                                 </div>
@@ -94,9 +119,9 @@ const VaccinationsDetail = ({ onBack, data = [] }) => {
                                         {vaccinations.map((vaccination, index) => (
                                             <div key={index} className="flex items-center justify-between py-2">
                                                 <div>
-                                                    <div className="font-medium text-sm">{vaccination.Impfstoffname}</div>
+                                                    <div className="font-medium text-sm">{vaccination.Impfstoffname || 'Unbekannter Impfstoff'}</div>
                                                     <div className="text-xs text-gray-500">
-                                                        {new Date(vaccination.Impfdatum).toLocaleDateString('de-DE')}
+                                                        {formatDate(vaccination.Impfdatum)}
                                                     </div>
                                                 </div>
                                                 <div className="text-green-600">
@@ -132,14 +157,16 @@ const VaccinationsDetail = ({ onBack, data = [] }) => {
                             <div className="flex-1 bg-white rounded-lg shadow-sm p-4">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <h4 className="font-medium">{vaccination.Impfstoffname}</h4>
+                                        <h4 className="font-medium">{vaccination.Impfstoffname || 'Unbekannter Impfstoff'}</h4>
                                         <p className="text-sm text-gray-600 mt-1">
-                                            Schutz gegen: {vaccination.Krankheit?.join(', ')}
+                                            Schutz gegen: {Array.isArray(vaccination.Krankheit)
+                                            ? vaccination.Krankheit.join(', ')
+                                            : vaccination.Krankheit || 'Unbekannt'}
                                         </p>
                                     </div>
                                     <div className="text-right">
                                         <div className="text-sm font-medium">
-                                            {new Date(vaccination.Impfdatum).toLocaleDateString('de-DE')}
+                                            {formatDate(vaccination.Impfdatum)}
                                         </div>
                                     </div>
                                 </div>
@@ -147,6 +174,14 @@ const VaccinationsDetail = ({ onBack, data = [] }) => {
                         </div>
                     ))}
                 </div>
+
+                {/* Empty state */}
+                {allVaccinations.length === 0 && (
+                    <div className="text-center text-gray-500 py-8">
+                        <CheckCircle size={48} className="mx-auto mb-4 text-gray-300" />
+                        <p>Noch keine Impfungen eingetragen</p>
+                    </div>
+                )}
             </div>
         </div>
     );
