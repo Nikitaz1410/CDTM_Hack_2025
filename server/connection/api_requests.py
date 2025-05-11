@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional, List
 
 # Configuration
-JAVA_API_URL = 'https://localhost:9898'
+JAVA_API_URL = 'http://localhost:9898'
 
 class JavaAPIClient:
     def __init__(self):
