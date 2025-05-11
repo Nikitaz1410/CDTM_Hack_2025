@@ -3,6 +3,7 @@ package com.aviDB.api.controller;
 import com.aviDB.domain.user.Report;
 import com.aviDB.service.ReportService;
 
+import com.aviDB.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,9 @@ public class ReportController {
 
     @Autowired
     private ReportService reportService;
+
+    @Autowired
+    private UserService userService;
 
     // Get all reports for a specific user
     @GetMapping("/user/{userId}")
@@ -32,6 +36,7 @@ public class ReportController {
     ) {
         // Attach user to the report if needed
         // (assuming user is already set via frontend or requires linking here)
+        report.setUser(userService.getUserById(userId));
         Report createdReport = reportService.addReport(report);
         return ResponseEntity.ok(createdReport);
     }
