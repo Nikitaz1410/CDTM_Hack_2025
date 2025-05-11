@@ -19,6 +19,7 @@ import {
 
 const OnboardingFlow = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     personalInfo: {
       first: '',
@@ -42,14 +43,21 @@ const OnboardingFlow = ({ onComplete }) => {
 
   const totalSteps = 6; // Welcome, Personal Info, Medications, Vaccinations, Medical Reports, Complete
 
-  const nextStep = () => {
+  const nextStep = async () => {
+    if (isSubmitting) return; // Prevent multiple clicks
+
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       // Complete onboarding
-      onComplete(formData);
+      setIsSubmitting(true);
+      try {
+        await onComplete(formData);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
-  };
+};
 
   const prevStep = () => {
     if (currentStep > 0) {
@@ -113,12 +121,13 @@ const OnboardingFlow = ({ onComplete }) => {
 
         <button
             onClick={nextStep}
-            className={`flex items-center px-6 py-2 bg-teal-500 text-white rounded-full ${
+            disabled={isSubmitting}
+            className={`flex items-center px-6 py-2 bg-teal-500 text-white rounded-full disabled:opacity-50 ${
                 currentStep === totalSteps - 1 ? 'px-8' : ''
             }`}
         >
-          {currentStep === totalSteps - 1 ? 'Onboarding abschließen' : 'Weiter'}
-          {currentStep !== totalSteps - 1 && <ChevronRight size={20} className="ml-1" />}
+          {isSubmitting ? 'Wird gespeichert...' : currentStep === totalSteps - 1 ? 'Onboarding abschließen' : 'Weiter'}
+          {!isSubmitting && currentStep !== totalSteps - 1 && <ChevronRight size={20} className="ml-1"/>}
         </button>
       </div>
   );
