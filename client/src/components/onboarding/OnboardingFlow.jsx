@@ -15,11 +15,22 @@ import {
   Edit,
   Camera,
   ArrowLeft,
-  Droplet
+  Droplet,
+  Loader,
+  AlertCircle,
+  CheckCircle
 } from 'lucide-react';
 
 const OnboardingFlow = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [submissionStatus, setSubmissionStatus] = useState({
+    step: '',
+    progress: 0,
+    details: []
+  });
+
   const [formData, setFormData] = useState({
     personalInfo: {
       first: '',
@@ -47,12 +58,55 @@ const OnboardingFlow = ({ onComplete }) => {
 
   const totalSteps = 7; // Welcome, Personal Info, Medications, Vaccinations, Medical Reports, Blood Tests, Complete
 
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    setSubmitError('');
+    setSubmissionStatus({
+      step: 'Vorbereitung...',
+      progress: 10,
+      details: ['Gesundheitsdaten werden synchronisiert']
+    });
+
+    try {
+      // Simulate different stages of submission with updates
+      const stages = [
+        { step: 'Persönliche Daten speichern...', progress: 25, details: ['Name, Gewicht und Größe'] },
+        { step: 'Medikamente hochladen...', progress: 40, details: ['Medikationsliste wird erstellt'] },
+        { step: 'Impfungen verarbeiten...', progress: 55, details: ['Impfpass wird aktualisiert'] },
+        { step: 'Befunde analysieren...', progress: 70, details: ['Medizinische Dokumente'] },
+        { step: 'Blutwerte einpflegen...', progress: 85, details: ['Laborergebnisse werden gespeichert'] },
+        { step: 'Abschluss...', progress: 95, details: ['Profil wird finalisiert'] }
+      ];
+
+      for (const stage of stages) {
+        setSubmissionStatus(stage);
+        // Add slight delay to show progress
+        await new Promise(resolve => setTimeout(resolve, 800));
+      }
+
+      // Complete the onboarding
+      await onComplete(formData);
+
+      setSubmissionStatus({
+        step: 'Erfolgreich abgeschlossen!',
+        progress: 100,
+        details: ['Willkommen bei Health Tracker']
+      });
+
+      // Short delay before redirect
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+    } catch (error) {
+      setSubmitError(error.message || 'Ein Fehler ist aufgetreten. Bitte versuche es erneut.');
+      setIsSubmitting(false);
+    }
+  };
+
   const nextStep = () => {
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Complete onboarding
-      onComplete(formData);
+      handleSubmit();
     }
   };
 
@@ -77,13 +131,60 @@ const OnboardingFlow = ({ onComplete }) => {
         {Array.from({ length: totalSteps }).map((_, index) => (
             <div
                 key={index}
-                className={`w-2 h-2 rounded-full ${
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
                     index <= currentStep ? 'bg-teal-500' : 'bg-gray-300'
                 }`}
             />
         ))}
       </div>
   );
+
+  const renderSubmissionOverlay = () => {
+    if (!isSubmitting) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-teal-100 flex items-center justify-center">
+              {submissionStatus.progress === 100 ? (
+                <CheckCircle className="text-teal-600" size={32} />
+              ) : (
+                <Loader className="text-teal-600 animate-spin" size={32} />
+              )}
+            </div>
+
+            <h3 className="text-lg font-semibold mb-2">{submissionStatus.step}</h3>
+
+            {/* Progress bar */}
+            <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+              <div
+                className="bg-teal-500 h-2 rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${submissionStatus.progress}%` }}
+              />
+            </div>
+
+            {/* Status details */}
+            <div className="text-sm text-gray-600">
+              {submissionStatus.details.map((detail, index) => (
+                <div key={index} className="flex items-center justify-center">
+                  <Check size={12} className="text-teal-500 mr-2" />
+                  {detail}
+                </div>
+              ))}
+            </div>
+
+            {submitError && (
+              <div className="mt-4 p-3 bg-red-50 rounded-lg text-red-600 text-sm flex items-start">
+                <AlertCircle size={16} className="mr-2 mt-0.5 flex-shrink-0" />
+                <span>{submitError}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -109,35 +210,58 @@ const OnboardingFlow = ({ onComplete }) => {
   const renderButtons = () => (
       <div className="flex justify-between mt-8">
         <button
-            onClick={prevStep}
-            className={`flex items-center px-4 py-2 text-teal-600 ${
-                currentStep === 0 ? 'invisible' : ''
-            }`}
+          onClick={prevStep}
+          disabled={isSubmitting}
+          className={`flex items-center px-4 py-2 transition-all ${
+              currentStep === 0 ? 'invisible' : ''
+          } ${
+              isSubmitting ? 'opacity-50 cursor-not-allowed' : 'text-teal-600'
+          }`}
         >
           <ChevronLeft size={20} className="mr-1" />
           Zurück
         </button>
 
         <button
-            onClick={nextStep}
-            className={`flex items-center px-6 py-2 bg-teal-500 text-white rounded-full ${
-                currentStep === totalSteps - 1 ? 'px-8' : ''
-            }`}
+          onClick={nextStep}
+          disabled={isSubmitting}
+          className={`relative flex items-center justify-center px-6 py-2 rounded-full transition-all ${
+              currentStep === totalSteps - 1 ? 'px-8' : ''
+          } ${
+              isSubmitting 
+                  ? 'bg-gray-300 cursor-not-allowed' 
+                  : 'bg-teal-500 hover:bg-teal-600 text-white'
+          }`}
         >
-          {currentStep === totalSteps - 1 ? 'Onboarding abschließen' : 'Weiter'}
-          {currentStep !== totalSteps - 1 && <ChevronRight size={20} className="ml-1" />}
+          {isSubmitting ? (
+            <>
+              <Loader className="animate-spin mr-2" size={20} />
+              Wird gespeichert...
+            </>
+          ) : currentStep === totalSteps - 1 ? (
+              'Onboarding abschließen'
+          ) : (
+            <>
+              Weiter
+              <ChevronRight size={20} className="ml-1" />
+            </>
+          )}
         </button>
       </div>
   );
 
   return (
-      <div className="max-w-md mx-auto h-screen bg-white overflow-y-auto">
-        <div className="p-6">
-          {currentStep > 0 && renderProgressBar()}
-          {renderStepContent()}
-          {renderButtons()}
+      <>
+        <div className="max-w-md mx-auto h-screen bg-white overflow-y-auto">
+          <div className="p-6">
+            {currentStep > 0 && renderProgressBar()}
+            {renderStepContent()}
+            {renderButtons()}
+          </div>
         </div>
-      </div>
+
+        {renderSubmissionOverlay()}
+      </>
   );
 };
 

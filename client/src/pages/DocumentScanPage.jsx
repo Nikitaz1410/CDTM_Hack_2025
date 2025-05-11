@@ -216,7 +216,6 @@ const DocumentScanPage = () => {
                     onChange={(e) => setDocumentType(e.target.value)}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="other">Sonstiges</option>
                   <option value="blutbild">Blutbild</option>
                   <option value="impfpass">Impfpass</option>
                   <option value="befund">Arztbefund</option>

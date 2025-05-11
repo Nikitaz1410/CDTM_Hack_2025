@@ -100,6 +100,12 @@ public class UserController {
         dto.setEmail(user.getEmail());
         dto.setIsAdmin(user.isAdmin());
 
+     // Include personal info in the DTO
+        dto.setFirst(user.getFirst());
+        dto.setLast(user.getLast());
+        dto.setWeight(user.getWeight());
+        dto.setHeight(user.getHeight());
+
         // Include personal info in the DTO if available
         if (user.getFirst() != null) {
             // You might want to add these fields to UserDto
