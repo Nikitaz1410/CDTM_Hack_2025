@@ -3,11 +3,14 @@ package com.aviDB.domain.user;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "vaccination")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Vaccination {
 
     @Id
@@ -16,14 +19,16 @@ public class Vaccination {
 
     // Link to User
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    @JsonIgnore  // Prevent serialization issues
     private User user;
 
-    @Column(nullable = false)
+    @Column()
     private String name;  // Name of the vaccine
 
-    @Column(nullable = false)
+    @Column()
     private String date;  // Date of vaccination
 
-    @Column(nullable = false)
+    @Column()
     private String disease;  // Disease vaccinated against
 }

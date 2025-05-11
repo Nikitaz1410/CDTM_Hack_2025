@@ -1,6 +1,6 @@
 // src/pages/DocumentScanPage.jsx
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, FileText, CheckCircle, AlertCircle, Loader, Trash2 } from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertCircle, Loader, Trash2, Server } from 'lucide-react';
 import healthDataService from '../services/healthDataService';
 import ServerStatusIndicator from '../components/ui/ServerStatusIndicator';
 
@@ -11,11 +11,22 @@ const DocumentScanPage = () => {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [documentType, setDocumentType] = useState('other');
+  const [pythonServerStatus, setPythonServerStatus] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState(null);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
     loadDocuments();
+    checkServers();
   }, []);
+
+  const checkServers = async () => {
+    const javaStatus = await healthDataService.checkServerConnection();
+    const pythonStatus = await healthDataService.checkPythonServerConnection();
+    setPythonServerStatus(pythonStatus);
+
+    console.log('Server Status:', { java: javaStatus, python: pythonStatus });
+  };
 
   const loadDocuments = async () => {
     try {
@@ -47,6 +58,7 @@ const DocumentScanPage = () => {
 
     setUploadStatus('uploading');
     setUploadError('');
+    setAnalysisResult(null);
 
     try {
       // Convert base64 to blob
@@ -57,23 +69,25 @@ const DocumentScanPage = () => {
       const formData = new FormData();
       formData.append('image', blob, 'scanned-document.jpg');
       formData.append('timestamp', new Date().toISOString());
-      formData.append('userId', 'user123'); // You can get this from your auth system
       formData.append('document', documentType);
 
-      // Send POST request
+      // Send POST request to Python server
       const result = await healthDataService.uploadDocument(formData);
 
       if (result.success) {
         setUploadStatus('success');
+        setAnalysisResult(result);
+
         // Reload documents list
         loadDocuments();
 
-        // Reset after 3 seconds
+        // Reset after 5 seconds to show results
         setTimeout(() => {
           setCapturedImage(null);
           setUploadStatus(null);
           setDocumentType('other');
-        }, 3000);
+          setAnalysisResult(null);
+        }, 5000);
       } else {
         throw new Error(result.message || 'Upload failed');
       }
@@ -121,8 +135,29 @@ const DocumentScanPage = () => {
       <div className="p-4 pb-20">
         <h2 className="text-2xl font-bold mb-4">Dokumente scannen</h2>
 
-        <div className="mb-4">
+        <div className="mb-4 space-y-2">
           <ServerStatusIndicator position="content" />
+
+          {/* Python Server Status */}
+          <div className={`${
+              pythonServerStatus
+                  ? 'bg-green-50 border-green-200 text-green-700'
+                  : 'bg-red-50 border-red-200 text-red-700'
+          } border rounded-lg p-3 flex items-center justify-between`}>
+            <div className="flex items-center gap-3">
+              <Server size={20} className={pythonServerStatus ? 'text-green-600' : 'text-red-600'} />
+              <div>
+                <div className="font-medium">
+                  Dokument-Analyse {pythonServerStatus ? 'verfügbar' : 'nicht verfügbar'}
+                </div>
+                <div className="text-sm opacity-75">
+                  {pythonServerStatus
+                      ? 'KI-Analyse und OCR aktiviert'
+                      : 'Dokumentanalyse temporär deaktiviert'}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Upload Options */}
@@ -131,11 +166,20 @@ const DocumentScanPage = () => {
               <div className="mb-4">
                 <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full flex flex-col items-center justify-center h-32 bg-white rounded-lg shadow-sm p-4 border-2 border-dashed border-gray-300 hover:border-blue-500 transition-colors"
+                    disabled={!pythonServerStatus}
+                    className={`w-full flex flex-col items-center justify-center h-32 rounded-lg shadow-sm p-4 border-2 border-dashed transition-colors ${
+                        pythonServerStatus
+                            ? 'bg-white border-gray-300 hover:border-blue-500'
+                            : 'bg-gray-100 border-gray-200 cursor-not-allowed'
+                    }`}
                 >
-                  <Upload size={32} className="text-blue-500 mb-2" />
-                  <span className="text-center">Dokument hochladen</span>
-                  <span className="text-sm text-gray-500 mt-1">PDF, JPG, PNG bis 10MB</span>
+                  <Upload size={32} className={pythonServerStatus ? 'text-blue-500' : 'text-gray-400'} />
+                  <span className="text-center">
+                    {pythonServerStatus ? 'Dokument hochladen' : 'Dokumentanalyse nicht verfügbar'}
+                  </span>
+                  <span className="text-sm text-gray-500 mt-1">
+                    {pythonServerStatus ? 'PDF, JPG, PNG bis 10MB' : 'Python-Server nicht erreichbar'}
+                  </span>
                 </button>
               </div>
 
@@ -146,6 +190,7 @@ const DocumentScanPage = () => {
                   accept="image/*,.pdf"
                   onChange={handleFileUpload}
                   className="hidden"
+                  disabled={!pythonServerStatus}
               />
             </div>
         )}
@@ -172,10 +217,10 @@ const DocumentScanPage = () => {
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="other">Sonstiges</option>
-                  <option value="bloodTest">Blutbild</option>
-                  <option value="vaccination">Impfpass</option>
-                  <option value="medicalReport">Arztbefund</option>
-                  <option value="medication">Medikationsplan</option>
+                  <option value="blutbild">Blutbild</option>
+                  <option value="impfpass">Impfpass</option>
+                  <option value="befund">Arztbefund</option>
+                  <option value="medikation">Medikationsplan</option>
                 </select>
               </div>
 
@@ -183,18 +228,18 @@ const DocumentScanPage = () => {
               <div className="flex space-x-4">
                 <button
                     onClick={sendImageToServer}
-                    disabled={uploadStatus === 'uploading'}
+                    disabled={uploadStatus === 'uploading' || !pythonServerStatus}
                     className="flex-1 bg-blue-500 text-white py-3 px-4 rounded-lg flex items-center justify-center disabled:opacity-50"
                 >
                   {uploadStatus === 'uploading' ? (
                       <>
                         <Loader className="animate-spin mr-2" size={20} />
-                        Wird hochgeladen...
+                        Wird analysiert...
                       </>
                   ) : (
                       <>
                         <Upload className="mr-2" size={20} />
-                        Dokument hochladen
+                        Dokument analysieren
                       </>
                   )}
                 </button>
@@ -213,17 +258,30 @@ const DocumentScanPage = () => {
         {/* Upload Status */}
         {uploadStatus && (
             <div className="mb-6">
-              {uploadStatus === 'success' && (
-                  <div className="flex items-center justify-center text-green-600 bg-green-50 p-3 rounded-lg">
-                    <CheckCircle className="mr-2" size={20} />
-                    Dokument erfolgreich hochgeladen!
+              {uploadStatus === 'success' && analysisResult && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center text-green-600 mb-4">
+                      <CheckCircle className="mr-2" size={20} />
+                      <h3 className="font-semibold">Dokument erfolgreich analysiert!</h3>
+                    </div>
+
+                    {/* Analysis Results */}
+                    {analysisResult.analysis && (
+                        <div className="text-sm space-y-2">
+                          <p><strong>Status:</strong> {analysisResult.analysis.status || 'Analysiert'}</p>
+                          <p><strong>Erkannte Daten:</strong></p>
+                          <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
+                            {JSON.stringify(analysisResult.analysis, null, 2)}
+                          </pre>
+                        </div>
+                    )}
                   </div>
               )}
 
               {uploadStatus === 'error' && (
-                  <div className="flex items-center justify-center text-red-600 bg-red-50 p-3 rounded-lg">
+                  <div className="flex items-center justify-center text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
                     <AlertCircle className="mr-2" size={20} />
-                    Fehler: {uploadError}
+                    <span>Fehler: {uploadError}</span>
                   </div>
               )}
             </div>

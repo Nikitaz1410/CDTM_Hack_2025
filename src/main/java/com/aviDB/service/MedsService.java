@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@Transactional  // Add this to handle lazy loading issues
 public class MedsService {
 
     @Autowired
@@ -21,6 +22,7 @@ public class MedsService {
     @Autowired
     private UserRepository userRepository;
 
+    @Transactional(rollbackOn = Exception.class)  // Ensure transaction is active for lazy loading
     public List<Med> getMedsByUserId(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new NotFoundException("User not found");
@@ -28,12 +30,13 @@ public class MedsService {
         return medsRepository.findByUserId(userId);
     }
 
+    @Transactional(rollbackOn = Exception.class)
     public Med getMedById(Long medId) {
         return medsRepository.findById(medId)
                 .orElseThrow(() -> new NotFoundException("Medication not found"));
     }
 
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public Med createMed(Long userId, String name, Integer dailyIntake) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
@@ -46,7 +49,7 @@ public class MedsService {
         return medsRepository.save(med);
     }
 
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public Med updateMed(Long medId, String name, Integer dailyIntake) {
         Med med = getMedById(medId);
 
@@ -56,7 +59,7 @@ public class MedsService {
         return medsRepository.save(med);
     }
 
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public void deleteMed(Long medId) {
         if (!medsRepository.existsById(medId)) {
             throw new NotFoundException("Medication not found");

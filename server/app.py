@@ -71,6 +71,29 @@ async def upload_document(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f'Failed to upload document: {str(e)}')
 
+# Add this to server/app.py
+
+# Health check endpoint
+@app.get('/api-img/health')
+async def health_check():
+    return {
+        'status': 'healthy',
+        'service': 'document_analysis',
+        'version': '1.0.0'
+    }
+
+# Root endpoint for basic server status
+@app.get('/api-img/')
+async def root():
+    return {
+        'message': 'AVI Health Document Analysis API',
+        'status': 'running',
+        'endpoints': {
+            'upload': '/api-img/upload-document',
+            'health': '/api-img/health'
+        }
+    }
+
 if __name__ == '__main__':
     import uvicorn
 

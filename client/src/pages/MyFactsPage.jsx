@@ -54,7 +54,28 @@ const MyFactsPage = () => {
   // Get most recent data for display
   const getRecentData = (data) => {
     if (!data || data.length === 0) return null;
-    return data.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+    // Sort by date and return the most recent
+    const sortedData = [...data].sort((a, b) => {
+      const dateA = a.date ? new Date(a.date) : new Date(0);
+      const dateB = b.date ? new Date(b.date) : new Date(0);
+      return dateB - dateA;
+    });
+
+    return sortedData[0];
+  };
+
+  // Count medications properly
+  const getMedicationCount = () => {
+    if (!healthData.medications || healthData.medications.length === 0) return 0;
+
+    let count = 0;
+    healthData.medications.forEach(record => {
+      if (record.medikamente) {
+        count += Object.keys(record.medikamente).length;
+      }
+    });
+    return count;
   };
 
   const healthCategories = [
@@ -95,7 +116,7 @@ const MyFactsPage = () => {
       lastUpdated: getRecentData(healthData.medications)?.date
           ? new Date(getRecentData(healthData.medications).date).toLocaleDateString('de-DE')
           : 'Noch keine Daten',
-      value: healthData.medications?.reduce((total, record) => total + (Object.keys(record.medikamente || {}).length), 0) || 0,
+      value: getMedicationCount(),
       unit: 'Medikamente'
     },
   ];

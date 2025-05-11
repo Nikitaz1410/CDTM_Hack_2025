@@ -151,6 +151,7 @@ const authService = {
                     });
                 } catch (error) {
                     console.warn('Failed to upload document:', error);
+                    // Don't throw error, just continue without uploading this document
                 }
             }
 

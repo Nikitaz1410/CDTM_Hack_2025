@@ -1,6 +1,8 @@
+// Update MedController.java
 package com.aviDB.api.controller;
 
 import com.aviDB.domain.user.Med;
+import com.aviDB.api.dto.response.MedDto;
 import com.aviDB.service.MedsService;
 
 import jakarta.validation.Valid;
@@ -9,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/meds")
@@ -25,28 +28,29 @@ public class MedController {
 
     // Get a single med by its ID
     @GetMapping("/{medId}")
-    public ResponseEntity<Med> getMedById(@PathVariable Long medId) {
-        return ResponseEntity.ok(medsService.getMedById(medId));
+    public ResponseEntity<MedDto> getMedById(@PathVariable Long medId) {
+        Med med = medsService.getMedById(medId);
+        return ResponseEntity.ok(convertToDto(med));
     }
 
     // Add a new med for a user
     @PostMapping("/user/{userId}")
-    public ResponseEntity<Med> addMed(
+    public ResponseEntity<MedDto> addMed(
             @PathVariable Long userId,
             @Valid @RequestBody Med dto
     ) {
         Med med = medsService.createMed(userId, dto.getName(), dto.getDailyIntake());
-        return ResponseEntity.ok(med);
+        return ResponseEntity.ok(convertToDto(med));
     }
 
     // Update an existing med
     @PutMapping("/{medId}")
-    public ResponseEntity<Med> updateMed(
+    public ResponseEntity<MedDto> updateMed(
             @PathVariable Long medId,
             @Valid @RequestBody Med dto
     ) {
         Med updated = medsService.updateMed(medId, dto.getName(), dto.getDailyIntake());
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(convertToDto(updated));
     }
 
     // Delete a med
@@ -56,4 +60,17 @@ public class MedController {
         return ResponseEntity.noContent().build();
     }
 
+    private MedDto convertToDto(Med med) {
+        MedDto dto = new MedDto();
+        dto.setId(med.getId());
+        dto.setName(med.getName());
+        dto.setDailyIntake(med.getDailyIntake());
+        dto.setUserId(med.getUser().getId());
+
+        // Optional: add user info if needed
+        dto.setUserEmail(med.getUser().getEmail());
+        dto.setUserName(med.getUser().getUsername());
+
+        return dto;
+    }
 }

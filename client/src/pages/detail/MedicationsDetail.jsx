@@ -8,17 +8,25 @@ const MedicationsDetail = ({ onBack, data = [] }) => {
     // Get the most recent medication record
     const getRecentMedication = () => {
         if (!data.length) return null;
-        return [...data].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+        // Sort by date and get the most recent
+        const sorted = [...data].sort((a, b) => {
+            const dateA = a.date ? new Date(a.date) : new Date();
+            const dateB = b.date ? new Date(b.date) : new Date();
+            return dateB - dateA;
+        });
+
+        return sorted[0];
     };
 
     // Get medication schedule for today
     const getTodaySchedule = () => {
         const recent = getRecentMedication();
-        if (!recent) return [];
+        if (!recent || !recent.medikamente) return [];
 
         const schedule = [];
-        Object.entries(recent.medikamente || {}).forEach(([name, dosage]) => {
-            if (dosage.morning > 0) {
+        Object.entries(recent.medikamente).forEach(([name, dosage]) => {
+            if (dosage.morning && dosage.morning > 0) {
                 schedule.push({
                     medication: name,
                     time: 'Morgens',
@@ -27,7 +35,7 @@ const MedicationsDetail = ({ onBack, data = [] }) => {
                     comment: dosage.comment
                 });
             }
-            if (dosage.noon > 0) {
+            if (dosage.noon && dosage.noon > 0) {
                 schedule.push({
                     medication: name,
                     time: 'Mittags',
@@ -36,7 +44,7 @@ const MedicationsDetail = ({ onBack, data = [] }) => {
                     comment: dosage.comment
                 });
             }
-            if (dosage.night > 0) {
+            if (dosage.night && dosage.night > 0) {
                 schedule.push({
                     medication: name,
                     time: 'Abends',
@@ -58,11 +66,15 @@ const MedicationsDetail = ({ onBack, data = [] }) => {
 
     // Get all medications from recent record
     const getAllMedications = () => {
-        if (!recentMedication) return [];
-        return Object.entries(recentMedication.medikamente || {}).map(([name, dosage]) => ({
+        if (!recentMedication || !recentMedication.medikamente) return [];
+
+        return Object.entries(recentMedication.medikamente).map(([name, dosage]) => ({
             name,
-            ...dosage,
-            totalDaily: dosage.morning + dosage.noon + dosage.night
+            morning: dosage.morning || 0,
+            noon: dosage.noon || 0,
+            night: dosage.night || 0,
+            comment: dosage.comment || '',
+            totalDaily: (dosage.morning || 0) + (dosage.noon || 0) + (dosage.night || 0)
         }));
     };
 
@@ -116,79 +128,97 @@ const MedicationsDetail = ({ onBack, data = [] }) => {
                 )}
 
                 {/* All Medications Overview */}
-                <h3 className="text-lg font-semibold mb-3">Alle Medikamente</h3>
-                <div className="space-y-3 mb-6">
-                    {allMedications.map((medication, index) => (
-                        <div key={index} className="bg-white rounded-lg shadow-sm p-4">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h4 className="font-medium">{medication.name}</h4>
-                                    <p className="text-sm text-gray-500 mt-1">
-                                        Gesamt: {medication.totalDaily} Tabletten täglich
-                                    </p>
-                                </div>
-                                <div className="flex space-x-4 text-sm text-gray-600">
-                                    {medication.morning > 0 && (
-                                        <div className="flex items-center">
-                                            <Sunrise size={14} className="mr-1" />
-                                            {medication.morning}
+                {allMedications.length > 0 && (
+                    <>
+                        <h3 className="text-lg font-semibold mb-3">Alle Medikamente</h3>
+                        <div className="space-y-3 mb-6">
+                            {allMedications.map((medication, index) => (
+                                <div key={index} className="bg-white rounded-lg shadow-sm p-4">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h4 className="font-medium">{medication.name}</h4>
+                                            <p className="text-sm text-gray-500 mt-1">
+                                                Gesamt: {medication.totalDaily} Tabletten täglich
+                                            </p>
+                                        </div>
+                                        <div className="flex space-x-4 text-sm text-gray-600">
+                                            {medication.morning > 0 && (
+                                                <div className="flex items-center">
+                                                    <Sunrise size={14} className="mr-1" />
+                                                    {medication.morning}
+                                                </div>
+                                            )}
+                                            {medication.noon > 0 && (
+                                                <div className="flex items-center">
+                                                    <Sun size={14} className="mr-1" />
+                                                    {medication.noon}
+                                                </div>
+                                            )}
+                                            {medication.night > 0 && (
+                                                <div className="flex items-center">
+                                                    <Moon size={14} className="mr-1" />
+                                                    {medication.night}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    {medication.comment && (
+                                        <div className="mt-3 text-sm text-gray-600">
+                                            <Info size={14} className="inline mr-2 text-gray-400" />
+                                            {medication.comment}
                                         </div>
                                     )}
-                                    {medication.noon > 0 && (
-                                        <div className="flex items-center">
-                                            <Sun size={14} className="mr-1" />
-                                            {medication.noon}
-                                        </div>
-                                    )}
-                                    {medication.night > 0 && (
-                                        <div className="flex items-center">
-                                            <Moon size={14} className="mr-1" />
-                                            {medication.night}
-                                        </div>
-                                    )}
                                 </div>
-                            </div>
-                            {medication.comment && (
-                                <div className="mt-3 text-sm text-gray-600">
-                                    <Info size={14} className="inline mr-2 text-gray-400" />
-                                    {medication.comment}
-                                </div>
-                            )}
+                            ))}
                         </div>
-                    ))}
-                </div>
+                    </>
+                )}
+
+                {/* Empty State */}
+                {allMedications.length === 0 && (
+                    <div className="text-center text-gray-500 py-8">
+                        <Pill size={48} className="mx-auto mb-4 text-gray-300" />
+                        <p>Noch keine Medikamente eingetragen</p>
+                        <button className="mt-4 px-4 py-2 bg-teal-500 text-white rounded-lg">
+                            Medikament hinzufügen
+                        </button>
+                    </div>
+                )}
 
                 {/* Medication History */}
                 <h3 className="text-lg font-semibold mb-3">Medikationshistorie</h3>
                 <div className="space-y-3">
-                    {data.sort((a, b) => new Date(b.date) - new Date(a.date)).map((record, index) => (
+                    {data.map((record, index) => (
                         <div key={index} className="bg-white rounded-lg shadow-sm p-4">
                             <div className="flex justify-between items-start mb-3">
                                 <div>
                                     <h4 className="font-medium">
-                                        {new Date(record.date).toLocaleDateString('de-DE', {
-                                            weekday: 'long',
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric'
-                                        })}
+                                        {record.date ?
+                                            new Date(record.date).toLocaleDateString('de-DE', {
+                                                weekday: 'long',
+                                                year: 'numeric',
+                                                month: 'long',
+                                                day: 'numeric'
+                                            }) :
+                                            'Aktuell'
+                                        }
                                     </h4>
                                     <span className={`text-xs px-2 py-1 rounded-full mt-1 inline-block ${
                                         record.status === 'current' ? 'bg-green-100 text-green-700' :
                                             record.status === 'previous' ? 'bg-gray-100 text-gray-700' :
                                                 'bg-blue-100 text-blue-700'
                                     }`}>
-                    {record.status}
-                  </span>
+                                        {record.status || 'aktuell'}
+                                    </span>
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                {Object.entries(record.medikamente || {}).map(([name, dosage]) => (
+                                {record.medikamente && Object.entries(record.medikamente).map(([name, dosage]) => (
                                     <div key={name} className="flex justify-between text-sm">
                                         <span className="text-gray-600">{name}</span>
                                         <span className="text-gray-900">
-                      {dosage.morning}-{dosage.noon}-{dosage.night}
-                    </span>
+                                            {dosage.morning || 0}-{dosage.noon || 0}-{dosage.night || 0}
+                                        </span>
                                     </div>
                                 ))}
                             </div>
