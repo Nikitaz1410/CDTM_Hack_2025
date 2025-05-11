@@ -1,3 +1,4 @@
+// Updated UserDto.java to include weight and height
 package com.aviDB.api.dto.response;
 
 import lombok.Getter;
@@ -15,6 +16,12 @@ public class UserDto {
     private byte[] avatar;
     private Boolean isAdmin;
     private String avatarBase64;
+    
+    // Add personal info fields
+    private String first;
+    private String last;
+    private String weight;
+    private String height;
 
     /**
      * Utility method to convert avatar bytes to base64 string
