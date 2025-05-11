@@ -1,4 +1,4 @@
-
+// src/components/onboarding/OnboardingFlow.jsx
 import React, { useState, useRef } from 'react';
 import {
   ChevronRight,
@@ -14,12 +14,12 @@ import {
   Plus,
   Edit,
   Camera,
-  ArrowLeft
+  ArrowLeft,
+  Droplet
 } from 'lucide-react';
 
 const OnboardingFlow = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     personalInfo: {
       first: '',
@@ -38,38 +38,27 @@ const OnboardingFlow = ({ onComplete }) => {
     medicalReports: {
       manualData: [],
       scannedDocument: null
+    },
+    bloodTests: {
+      manualData: [],
+      scannedDocument: null
     }
   });
 
-  const totalSteps = 6; // Welcome, Personal Info, Medications, Vaccinations, Medical Reports, Complete
+  const totalSteps = 7; // Welcome, Personal Info, Medications, Vaccinations, Medical Reports, Blood Tests, Complete
 
   const nextStep = () => {
-    // This function now only handles moving to the next step, not submission.
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
+    } else {
+      // Complete onboarding
+      onComplete(formData);
     }
   };
 
   const prevStep = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
-    }
-  };
-
-  const handleFinalSubmit = async () => {
-    if (isSubmitting) return; // Prevent multiple submissions
-    setIsSubmitting(true);
-    try {
-      await onComplete(formData);
-      // Optionally, you can navigate to a success screen or perform other actions here
-      // For example: setCurrentStep(currentStep + 1); // If you add a "Finished" step beyond totalSteps
-      // Or call another prop like onFlowSuccessfullyCompleted();
-    } catch (error) {
-      // The error should ideally be handled by onComplete, but you can add UI feedback here
-      console.error("Onboarding submission failed (UI level):", error);
-      // You might want to show an error message to the user
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -109,64 +98,37 @@ const OnboardingFlow = ({ onComplete }) => {
       case 4:
         return <MedicalReportsStep formData={formData} setFormData={setFormData} />;
       case 5:
-        return <CompleteStep formData={formData} />; // This is the review step
+        return <BloodTestsStep formData={formData} setFormData={setFormData} />;
+      case 6:
+        return <CompleteStep formData={formData} />;
       default:
         return null;
     }
   };
 
-  const renderButtons = () => {
-    // On the final "CompleteStep" (review step)
-    if (currentStep === totalSteps - 1) {
-      return (
-        <div className="flex justify-between mt-8">
-          <button
-            onClick={prevStep}
-            className="flex items-center px-4 py-2 text-teal-600" // Always visible to go back
-          >
-            <ChevronLeft size={20} className="mr-1" />
-            Zurück
-          </button>
-          <button
-            onClick={handleFinalSubmit} // Dedicated submit handler
-            disabled={isSubmitting}
-            className="flex items-center px-8 py-2 bg-teal-500 text-white rounded-full disabled:opacity-50"
-          >
-            {isSubmitting ? 'Wird gespeichert...' : 'Onboarding abschließen'}
-          </button>
-        </div>
-      );
-    }
-
-    // For all other steps
-    return (
+  const renderButtons = () => (
       <div className="flex justify-between mt-8">
         <button
             onClick={prevStep}
             className={`flex items-center px-4 py-2 text-teal-600 ${
-                currentStep === 0 ? 'invisible' : '' // Invisible on the first step
+                currentStep === 0 ? 'invisible' : ''
             }`}
         >
-          {/* Conditionally render content to ensure button is not shown if invisible logic is complex */}
-          {currentStep > 0 && (
-            <>
-              <ChevronLeft size={20} className="mr-1" />
-              Zurück
-            </>
-          )}
+          <ChevronLeft size={20} className="mr-1" />
+          Zurück
         </button>
 
         <button
-            onClick={nextStep} // Calls the simplified nextStep
-            // isSubmitting is not strictly needed here anymore if nextStep is just navigation
-            className="flex items-center px-6 py-2 bg-teal-500 text-white rounded-full"
+            onClick={nextStep}
+            className={`flex items-center px-6 py-2 bg-teal-500 text-white rounded-full ${
+                currentStep === totalSteps - 1 ? 'px-8' : ''
+            }`}
         >
-          Weiter
-          <ChevronRight size={20} className="ml-1"/>
+          {currentStep === totalSteps - 1 ? 'Onboarding abschließen' : 'Weiter'}
+          {currentStep !== totalSteps - 1 && <ChevronRight size={20} className="ml-1" />}
         </button>
       </div>
-    );
-  };
+  );
 
   return (
       <div className="max-w-md mx-auto h-screen bg-white overflow-y-auto">
@@ -179,8 +141,7 @@ const OnboardingFlow = ({ onComplete }) => {
   );
 };
 
-//AHAHAHAHHAHAHAHA
-
+// Step Components
 const WelcomeStep = () => (
     <div className="text-center pt-16">
       <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-teal-100 flex items-center justify-center">
@@ -208,11 +169,13 @@ const WelcomeStep = () => (
           <FileText className="text-teal-500 mr-3" size={20} />
           <span>Befunde</span>
         </div>
+        <div className="flex items-center text-left">
+          <Droplet className="text-teal-500 mr-3" size={20} />
+          <span>Blutbild</span>
+        </div>
       </div>
     </div>
 );
-
-//AAAAAAAHAHAHAHAHAHAHAHAHAHHAHAHAHAHHAHAHAHAHAHAHHA
 
 const PersonalInfoStep = ({ formData, updateFormData }) => (
     <div>
@@ -265,7 +228,7 @@ const PersonalInfoStep = ({ formData, updateFormData }) => (
     </div>
 );
 
-// Medical Step Template for Medications, Vaccinations, and Medical Reports
+// Medical Step Template for Medications, Vaccinations, Medical Reports, and Blood Tests
 const MedicalStepTemplate = ({
                                title,
                                icon,
@@ -479,7 +442,7 @@ const MedicalStepTemplate = ({
   }
 };
 
-// Manual Form Components (now properly as React components)
+// Manual Form Components
 const MedicationsManualForm = ({ formData, setFormData, itemType }) => {
   const [currentMedication, setCurrentMedication] = useState({
     name: '',
@@ -738,6 +701,160 @@ const MedicalReportsManualForm = ({ formData, setFormData, itemType }) => {
   );
 };
 
+// New Blood Tests Manual Form Component
+const BloodTestsManualForm = ({ formData, setFormData, itemType }) => {
+  const [currentBloodTest, setCurrentBloodTest] = useState({
+    date: '',
+    parameters: []
+  });
+
+  const [currentParameter, setCurrentParameter] = useState({
+    name: '',
+    value: ''
+  });
+
+  const addParameter = () => {
+    if (currentParameter.name && currentParameter.value) {
+      setCurrentBloodTest(prev => ({
+        ...prev,
+        parameters: [...prev.parameters, { ...currentParameter }]
+      }));
+      setCurrentParameter({ name: '', value: '' });
+    }
+  };
+
+  const removeParameter = (index) => {
+    setCurrentBloodTest(prev => ({
+      ...prev,
+      parameters: prev.parameters.filter((_, i) => i !== index)
+    }));
+  };
+
+  const addBloodTest = () => {
+    if (currentBloodTest.date && currentBloodTest.parameters.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        [itemType]: {
+          ...prev[itemType],
+          manualData: [...prev[itemType].manualData, { ...currentBloodTest }]
+        }
+      }));
+      setCurrentBloodTest({ date: '', parameters: [] });
+    }
+  };
+
+  const removeBloodTest = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      [itemType]: {
+        ...prev[itemType],
+        manualData: prev[itemType].manualData.filter((_, i) => i !== index)
+      }
+    }));
+  };
+
+  return (
+      <div>
+        <div className="bg-gray-50 p-4 rounded-lg mb-4">
+          <h3 className="font-medium mb-3">Neues Blutbild</h3>
+          <div className="space-y-3">
+            <input
+                type="date"
+                value={currentBloodTest.date}
+                onChange={(e) => setCurrentBloodTest(prev => ({ ...prev, date: e.target.value }))}
+                className="w-full p-3 border border-gray-300 rounded-lg"
+                placeholder="Datum der Untersuchung"
+            />
+
+            <div className="border-t pt-3">
+              <h4 className="text-sm text-gray-600 mb-2">Parameter hinzufügen</h4>
+              <div className="space-y-2">
+                <input
+                    type="text"
+                    value={currentParameter.name}
+                    onChange={(e) => setCurrentParameter(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Parameter (z.B. Hämoglobin)"
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                />
+                <input
+                    type="number"
+                    step="0.1"
+                    value={currentParameter.value}
+                    onChange={(e) => setCurrentParameter(prev => ({ ...prev, value: parseFloat(e.target.value) || '' }))}
+                    placeholder="Wert (z.B. 15.2)"
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                />
+                <button
+                    onClick={addParameter}
+                    className="w-full py-2 bg-teal-500 text-white rounded-lg"
+                >
+                  Parameter hinzufügen
+                </button>
+              </div>
+            </div>
+
+            {/* Current parameters for this blood test */}
+            {currentBloodTest.parameters.length > 0 && (
+                <div className="border-t pt-3">
+                  <h4 className="text-sm text-gray-600 mb-2">Parameter für dieses Blutbild</h4>
+                  <div className="space-y-1">
+                    {currentBloodTest.parameters.map((param, index) => (
+                        <div key={index} className="flex items-center justify-between text-sm">
+                          <span>{param.name}: {param.value}</span>
+                          <button
+                              onClick={() => removeParameter(index)}
+                              className="text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                    ))}
+                  </div>
+                </div>
+            )}
+
+            <button
+                onClick={addBloodTest}
+                className="flex items-center justify-center w-full py-2 bg-teal-600 text-white rounded-lg"
+                disabled={!currentBloodTest.date || currentBloodTest.parameters.length === 0}
+            >
+              <Plus size={16} className="mr-2" />
+              Blutbild hinzufügen
+            </button>
+          </div>
+        </div>
+
+        {/* Saved blood tests */}
+        {formData[itemType].manualData.length > 0 && (
+            <div className="space-y-2">
+              {formData[itemType].manualData.map((bloodTest, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
+                    <div>
+                      <div className="font-medium">
+                        Blutbild vom {new Date(bloodTest.date).toLocaleDateString('de-DE')}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {bloodTest.parameters.length} Parameter
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {bloodTest.parameters.slice(0, 3).map(p => p.name).join(', ')}
+                        {bloodTest.parameters.length > 3 && '...'}
+                      </div>
+                    </div>
+                    <button
+                        onClick={() => removeBloodTest(index)}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+              ))}
+            </div>
+        )}
+      </div>
+  );
+};
+
 // Main Steps
 const MedicationsStep = ({ formData, setFormData }) => {
   return (
@@ -781,6 +898,21 @@ const MedicalReportsStep = ({ formData, setFormData }) => {
   );
 };
 
+// New Blood Tests Step
+const BloodTestsStep = ({ formData, setFormData }) => {
+  return (
+      <MedicalStepTemplate
+          title="Blutbild"
+          icon={<Droplet size={24} />}
+          itemType="bloodTests"
+          formData={formData}
+          setFormData={setFormData}
+          ManualFormComponent={BloodTestsManualForm}
+          documentType="blutbild"
+      />
+  );
+};
+
 // Complete Step
 const CompleteStep = ({ formData }) => {
   const getItemCount = (item) => {
@@ -820,6 +952,14 @@ const CompleteStep = ({ formData }) => {
               <span>Befunde</span>
             </div>
             <span className="text-gray-600">{getItemCount(formData.medicalReports)} hinzugefügt</span>
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center">
+              <Droplet className="text-teal-500 mr-3" size={20} />
+              <span>Blutbild</span>
+            </div>
+            <span className="text-gray-600">{getItemCount(formData.bloodTests)} hinzugefügt</span>
           </div>
         </div>
 
